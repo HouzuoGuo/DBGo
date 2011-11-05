@@ -7,8 +7,8 @@ import (
 )
 
 type Database struct {
-	path string
-	tables map[string]*table.Table
+	Path string
+	Tables map[string]*table.Table
 }
 
 func OpenDatabase(path string) (db *Database) {
@@ -35,11 +35,12 @@ func OpenDatabase(path string) (db *Database) {
 			case ".def":
 				fallthrough
 			case ".log":
-				_, exists := db.tables[name]
+				_, exists := db.Tables[name]
 				if !exists {
-					db.tables[name] = table.OpenTable(path, name)
+					db.Tables[name] = table.OpenTable(path, name)
 				}
 		}
 	}
+	db.Path = path
 	return
 }
