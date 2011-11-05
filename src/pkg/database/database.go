@@ -12,6 +12,7 @@ type Database struct {
 }
 
 func OpenDatabase(path string) (db *Database) {
+	db = new(Database)
 	var directory *os.File
 	var error os.Error
 	directory, error = os.Open(path)
