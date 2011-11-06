@@ -9,6 +9,4 @@ func main() {
 	for _, number := range ha {
 		fmt.Println(number)
 	}
-	//db := database.OpenDatabase("/home/houzuo/test_db")
-	
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"strconv"
 	"column"
-	"consts"
+	"constant"
 	"util"
 )
 
@@ -55,9 +55,9 @@ func (table *Table) Init() (err os.Error) {
 }
 
 func (table *Table) OpenFiles() (err os.Error) {
-	table.DefFile, err = os.OpenFile(table.DefFilePath, os.O_RDWR, consts.DataFilePerm)
+	table.DefFile, err = os.OpenFile(table.DefFilePath, os.O_RDWR, constant.DataFilePerm)
 	if err == nil {
-		table.DataFile, err = os.OpenFile(table.DataFilePath, os.O_RDWR, consts.DataFilePerm)
+		table.DataFile, err = os.OpenFile(table.DataFilePath, os.O_RDWR, constant.DataFilePerm)
 	}
 	return
 }
@@ -169,5 +169,9 @@ func (table *Table) Update(rowNumber int, row map[string]string) (ok bool) {
 		}
 		ok = true
 	}
+	return
+}
+
+func (table *Table) RebuildDataFile() (ok bool) {
 	return
 }
