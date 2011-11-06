@@ -14,32 +14,34 @@ type Database struct {
 func OpenDatabase(path string) (db *Database) {
 	db = new(Database)
 	var directory *os.File
-	var error os.Error
-	directory, error = os.Open(path)
-	if error != nil {
+	var err os.Error
+	directory, err = os.Open(path)
+	if err != nil {
 		db = nil
 	}
 	defer directory.Close()
 	var fileInfo []os.FileInfo
-	fileInfo, error = directory.Readdir(0)
-	if error != nil {
+	fileInfo, err = directory.Readdir(0)
+	if err != nil {
 		db = nil
 	}
-	for i := 0; i< len(fileInfo); i++ {
-		if !fileInfo[i].IsRegular() {
-			continue
-		}
-		name, extension := util.FilenameParts(fileInfo[i].Name)
-		switch extension {
-			case ".data":
-				fallthrough
-			case ".def":
-				fallthrough
-			case ".log":
-				_, exists := db.Tables[name]
-				if !exists {
-					db.Tables[name] = table.OpenTable(path, name)
-				}
+	for _, singleFileInfo := range fileInfo {
+		if singleFileInfo.IsRegular() {
+			name, extension := util.FilenameParts(singleFileInfo.Name)
+			switch extension {
+				case ".data":
+					fallthrough
+				case ".def":
+					fallthrough
+				case ".log":
+					_, exists := db.Tables[name]
+					if !exists {
+						db.Tables[name], err = table.Open(path, name)
+						if err != nil {
+							os.Exit(1)
+						}
+					}
+			}
 		}
 	}
 	db.Path = path
