@@ -6,7 +6,5 @@ import (
 
 func main() {
 	ha := []int{1,2,3}
-	for _, number := range ha {
-		fmt.Println(number)
-	}
+	fmt.Println(ha[0:1])
 }

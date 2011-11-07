@@ -135,7 +135,7 @@ func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
 		_, err := table.DataFile.Read(rowInBytes)
 		if err == nil {
 			for _, column := range table.ColumnsInOrder {
-				row[column.Name] = string(rowInBytes[column.Offset:column.Offset+column.Length])
+				row[column.Name] = strings.TrimSpace(string(rowInBytes[column.Offset:column.Offset+column.Length]))
 			}
 			status = st.OK
 		} else {
@@ -226,7 +226,7 @@ func (table *Table) Add(name string, length int) (status int) {
 	if status == st.OK && numberOfRows > 0 {
 		newColumn.Offset = 0
 		newColumn.Length = 1
-		status = table.RebuildDataFile(name, length)
+		status = table.RebuildDataFile()
 		newColumn.Offset = table.RowLength
 		newColumn.Length = length
 	}
@@ -243,7 +243,28 @@ func (table *Table) Add(name string, length int) (status int) {
 	}
 }
 
-func (table *Table) RebuildDataFile(name string, length int) (status int) {
+func (table *Table) Remove(name string) (status int) {
+	var theColumn *column.Column
+	var columnIndex int
+	for i, column := range table.ColumnsInOrder {
+		if column.Name == name {
+			theColumn = table.ColumnsInOrder[i]
+			columnIndex = i
+			break 
+		}
+	}
+	if theColumn == nil {
+		return st.ColumnNameNotFound
+	}
+	name, length := theColumn.Name, theColumn.Length
+	table.ColumnsInOrder = append(table.ColumnsInOrder[:columnIndex], table.ColumnsInOrder[columnIndex:]...)
+	table.Columns[name] = nil, true
+	table.RebuildDataFile()
+	table.RowLength -= length
+	
+}
+
+func (table *Table) RebuildDataFile() (status int) {
 	tempName := string(time.Nanoseconds())
 	tablefilemanager.Create(table.Path, tempName)
 	var tempTable *Table
@@ -276,7 +297,7 @@ func (table *Table) RebuildDataFile(name string, length int) (status int) {
 	}
 	status = tablefilemanager.Delete(table.Path, table.Name)
 	if status == st.OK {
-		status = tablefilemanager.Rename(table.Path, tempName, name)
+		status = tablefilemanager.Rename(table.Path, tempName, table.Name)
 		if status == st.OK {
 			return table.OpenFiles()
 		}
