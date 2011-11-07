@@ -41,11 +41,9 @@ func Open(path string) (db *Database, status int) {
 				case ".log":
 					_, exists := db.Tables[name]
 					if !exists {
-						var ret int
-						db.Tables[name], ret = table.Open(path, name)
-						if ret != st.OK {
+						db.Tables[name], status = table.Open(path, name)
+						if status != st.OK {
 							db = nil
-							status = st.CannotOpenTableInDatabaseInit
 							return
 						}
 					}
@@ -53,7 +51,6 @@ func Open(path string) (db *Database, status int) {
 		}
 	}
 	db.Path = path
-	status = st.OK
 	return
 }
 

@@ -2,12 +2,14 @@ package table
 
 import (
 	"os"
+	"time"
 	"strings"
 	"strconv"
 	"column"
 	"constant"
 	"st"
 	"util"
+	"tablefilemanager"
 )
 
 type Table struct {
@@ -23,6 +25,9 @@ func Open(path, name string) (table *Table, status int) {
 	table.Path = path
 	table.Name = name
 	status = table.Init()
+	if status != st.OK {
+		table = nil
+	}
 	return
 }
 
@@ -45,19 +50,16 @@ func (table *Table) Init() (status int) {
 	lines := strings.Split(string(content), "\n")
 	table.NumberOfColumns = len(lines)
 	for _, line := range lines {
-		lengthName := strings.Split(line, ":")
-		length, err := strconv.Atoi(lengthName[0])
-		if err != nil {
-			status = st.InvalidColumnDefinition
+		var aColumn *column.Column
+		aColumn, status = column.ColumnFromDef(table.RowLength, line)
+		if status != st.OK {
 			return
 		}
-		aColumn := &column.Column{Offset:table.RowLength, Length:length, Name:lengthName[1]}
-		table.Columns[lengthName[1]] = aColumn
+		table.Columns[aColumn.Name] = aColumn
 		table.ColumnsInOrder = append(table.ColumnsInOrder[:], aColumn)
-		table.RowLength += length
+		table.RowLength += aColumn.Length
 	}
 	table.RowLength++
-	status = st.OK
 	return
 }
 
@@ -66,85 +68,92 @@ func (table *Table) OpenFiles() (status int) {
 	table.DefFile, err = os.OpenFile(table.DefFilePath, os.O_RDWR, constant.DataFilePerm)
 	if err == nil {
 		table.DataFile, err = os.OpenFile(table.DataFilePath, os.O_RDWR, constant.DataFilePerm)
-		status = st.OK
 		if err != nil {
-			status = st.CannotOpenTableDataFile
+			return st.CannotOpenTableDataFile
 		}
 	} else {
-		status = st.CannotOpenTableDefFile
+		return st.CannotOpenTableDefFile
 	}
-	return
+	return st.OK
 }
 
 func (table *Table) Flush() (status int){
 	err := table.DefFile.Sync()
 	if err == nil {
 		err = table.DataFile.Sync()
-		status = st.OK
 		if err != nil {
-			status = st.CannotFlushTableDataFile
+			return st.CannotFlushTableDataFile
 		}
 	} else {
-		status = st.CannotFlushTableDefFile
+		return st.CannotFlushTableDefFile
 	}
-	return
+	return st.OK
 }
 
 func (table *Table) Seek(rowNumber int) (status int) {
-	numberOfRows, ok := table.NumberOfRows()
-	if ok && rowNumber < numberOfRows {
-		table.DataFile.Seek(int64(rowNumber * table.RowLength), 0)
-		ok = true
+	var numberOfRows int
+	numberOfRows, status = table.NumberOfRows()
+	if status == st.OK && rowNumber < numberOfRows {
+		_, err := table.DataFile.Seek(int64(rowNumber * table.RowLength), 0)
+		if err != nil {
+			return st.CannotSeekTableDataFile
+		}
 	}
-	return
+	return st.OK
 }
 
-func (table *Table) SeekColumn(rowNumber int, columnName string) (ok bool) {
-	if table.Seek(rowNumber) == true {
+func (table *Table) SeekColumn(rowNumber int, columnName string) (status int) {
+	status = table.Seek(rowNumber)
+	if status == st.OK {
 		column, exists := table.Columns[columnName]
 		if exists {
 			_, err := table.DataFile.Seek(int64(column.Offset), 1)
-			if err == nil {
-				ok = true
+			if err != nil {
+				return st.CannotSeekTableDataFile
 			}
 		}
 	}
-	return
+	return st.OK
 }
 
-func (table *Table) NumberOfRows() (numberOfRows int, ok bool) {
+func (table *Table) NumberOfRows() (numberOfRows int, status int) {
 	var dataFileInfo *os.FileInfo
 	dataFileInfo, err := table.DataFile.Stat()
 	if err == nil {
 		numberOfRows = int(dataFileInfo.Size)
-		ok = true
+		status = st.OK
+	} else {
+		status = st.CannotStatTableDataFile;
 	}
 	return
 }
 
-func (table *Table) Read(rowNumber int) (row map[string]string, ok bool) {
-	if table.Seek(rowNumber) {
+func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
+	status = table.Seek(rowNumber)
+	if status == st.OK {
 		rowInBytes := make([]byte, table.NumberOfColumns)
 		_, err := table.DataFile.Read(rowInBytes)
 		if err == nil {
 			for _, column := range table.ColumnsInOrder {
 				row[column.Name] = string(rowInBytes[column.Offset:column.Offset+column.Length])
 			}
-			ok = true
+			status = st.OK
+		} else {
+			status = st.CannotReadTableDataFile
 		}
 	}
 	return
 }
 
-func (table *Table) Write(column *column.Column, value string) (ok bool){
+func (table *Table) Write(column *column.Column, value string) (status int){
 	_, err := table.DataFile.WriteString(util.TrimLength(value, column.Length))
-	if err == nil {
-		ok = true
+	if err != nil {
+		return st.CannotWriteTableDataFile
 	}
-	return
+	return st.OK
 }
 
-func (table *Table) Insert(row map[string]string) (ok bool) {
+func (table *Table) Insert(row map[string]string) (status int) {
 	_, err := table.DataFile.Seek(0, 2)
 	if err == nil {
 		for _, column := range table.ColumnsInOrder {
@@ -152,49 +161,125 @@ func (table *Table) Insert(row map[string]string) (ok bool) {
 			if !exists {
 				value = ""
 			} 
-			if !table.Write(column, value) {
+			status = table.Write(column, value)
+			if status != st.OK {
 				return
 			}
 		}
 		_, err = table.DataFile.WriteString("\n")
 		if err == nil {
-			ok = true
+			return st.CannotWriteTableDataFile
 		}
 	}
-	return
+	return st.OK
 }
 
-func (table *Table) Delete(rowNumber int) (ok bool) {
-	if table.Seek(rowNumber) {
+func (table *Table) Delete(rowNumber int) (status int) {
+	status = table.Seek(rowNumber)
+	if status == st.OK {
 		del, exists := table.Columns["~del"]
 		if exists {
-			ok = table.Write(del, "y") 
+			status = table.Write(del, "y") 
+		} else {
+			status = st.TableDoesNotHaveDelColumn
 		}
 	}
 	return
 }
 
-func (table *Table) Update(rowNumber int, row map[string]string) (ok bool) {
-	if table.Seek(rowNumber) {
+func (table *Table) Update(rowNumber int, row map[string]string) (status int) {
+	status = table.Seek(rowNumber)
+	if status == st.OK {
 		for columnName, value := range row {
 			column, exists := table.Columns[columnName]
 			if exists {
-				if !table.Write(column, value) {
+				status = table.Write(column, value)
+				if status != st.OK {
 					return
 				}
 			} else {
 				return
 			}
 		}
-		ok = true
 	}
 	return
 }
 
-func (table *Table) Add(name string, length int) (ok bool) {
-	return
+func (table *Table) pushNewColumn(name string, length int) *column.Column{
+	newColumn := &column.Column{Name:name, Length:length}
+	table.ColumnsInOrder = append(table.ColumnsInOrder[:], newColumn)
+	table.Columns[name] = newColumn
+	return newColumn
 }
 
-func (table *Table) RebuildDataFile() (ok bool) {
+func (table *Table) Add(name string, length int) (status int) {
+	_, exists := table.Columns[name]
+	if exists {
+		return st.ColumnAlreadyExists
+	}
+	if len(name) > constant.MaxColumnNameLength {
+		return st.ColumnNameTooLong
+	}
+	newColumn := table.pushNewColumn(name, length)
+	var numberOfRows int
+	numberOfRows, status = table.NumberOfRows()
+	if status == st.OK && numberOfRows > 0 {
+		newColumn.Offset = 0
+		newColumn.Length = 1
+		status = table.RebuildDataFile(name, length)
+		newColumn.Offset = table.RowLength
+		newColumn.Length = length
+	}
+	if status == st.OK {
+		_, err := table.DefFile.Seek(0, 2)
+		if err != nil {
+			return st.CannotSeekTableDefFile
+		}
+		_, err = table.DefFile.WriteString(column.ColumnToDef(newColumn))
+		if err != nil {
+			return st.CannotWriteTableDefFile
+		}
+		table.RowLength += length
+	}
+}
+
+func (table *Table) RebuildDataFile(name string, length int) (status int) {
+	tempName := string(time.Nanoseconds())
+	tablefilemanager.Create(table.Path, tempName)
+	var tempTable *Table
+	tempTable, status = Open(table.Path, tempName)
+	if status != st.OK {
+		return
+	}
+	for _, column := range table.ColumnsInOrder {
+		tempTable.Add(column.Name, column.Length)
+	}
+	var numberOfRows int
+	numberOfRows, status = table.NumberOfRows()
+	if status != st.OK {
+		return
+	}
+	var everFailed bool
+	for i := 0; i < numberOfRows; i ++ {
+		row, ret := table.Read(i)
+		if ret != st.OK {
+			everFailed = true
+		}
+		if row["~del"] != "y" {
+			tempTable.Insert(row)
+		}
+	}
+	status = tempTable.Flush()
+	if everFailed || status != st.OK {
+		status = st.FailedToCopyCertainRows
+		return
+	}
+	status = tablefilemanager.Delete(table.Path, table.Name)
+	if status == st.OK {
+		status = tablefilemanager.Rename(table.Path, tempName, name)
+		if status == st.OK {
+			return table.OpenFiles()
+		}
+	}
 	return
 }
