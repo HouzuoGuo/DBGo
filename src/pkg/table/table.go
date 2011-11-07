@@ -4,7 +4,6 @@ import (
 	"os"
 	"time"
 	"strings"
-	"strconv"
 	"column"
 	"constant"
 	"st"
@@ -137,7 +136,6 @@ func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
 			for _, column := range table.ColumnsInOrder {
 				row[column.Name] = strings.TrimSpace(string(rowInBytes[column.Offset:column.Offset+column.Length]))
 			}
-			status = st.OK
 		} else {
 			status = st.CannotReadTableDataFile
 		}
@@ -241,6 +239,7 @@ func (table *Table) Add(name string, length int) (status int) {
 		}
 		table.RowLength += length
 	}
+	return
 }
 
 func (table *Table) Remove(name string) (status int) {
@@ -259,9 +258,9 @@ func (table *Table) Remove(name string) (status int) {
 	name, length := theColumn.Name, theColumn.Length
 	table.ColumnsInOrder = append(table.ColumnsInOrder[:columnIndex], table.ColumnsInOrder[columnIndex:]...)
 	table.Columns[name] = nil, true
-	table.RebuildDataFile()
+	status = table.RebuildDataFile()
 	table.RowLength -= length
-	
+	return
 }
 
 func (table *Table) RebuildDataFile() (status int) {

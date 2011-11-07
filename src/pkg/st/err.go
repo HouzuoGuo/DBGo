@@ -18,10 +18,14 @@ const (
 	CannotFlushTableDataFile = iota
 	TableDoesNotHaveDelColumn = iota
 	TableNameTooLong = iota
-	CannotCreateTableDefFile = iota
-	CannotCreateTableDataFile = iota
-	CannotRenameTableDefFile = iota
-	CannotRenameTableDataFile = iota
+	TableAlreadyExists = iota
+	CannotCreateTableFile = iota
+	CannotCreateTableDir = iota
+	CannotRenameTableFile = iota
+	CannotRenameTableDir = iota
+	CannotRemoveTableFile = iota
+	CannotRemoveTableDir = iota
 	ColumnAlreadyExists = iota
 	ColumnNameTooLong = iota
+	TableNotFound = iota
 )

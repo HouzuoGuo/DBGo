@@ -5,6 +5,8 @@ import (
 	"table"
 	"util"
 	"st"
+	"constant"
+	"tablefilemanager"
 )
 
 type Database struct {
@@ -54,10 +56,33 @@ func Open(path string) (db *Database, status int) {
 	return
 }
 
-func (db *Database) New (tableName string) (table *table.Table, status int) {
+func (db *Database) New (name string) (newTable *table.Table, status int) {
+	_, exists := db.Tables[name]
+	if exists {
+		return nil, st.TableAlreadyExists
+	}
+	if len(name) > constant.MaxTableNameLength {
+		return nil, st.TableNameTooLong
+	}
+	tablefilemanager.Create(db.Path, name)
+	newTable, status = table.Open(db.Path, name)
+	if status == st.OK {
+		for columnName, length := range constant.DatabaseColumns() {
+			status = newTable.Add(columnName, length)
+			if status != st.OK {
+				return
+			}
+		}
+	}
 	return
 }
 
-func (db *Database) Delete (tableName string) (table *table.Table, status int) {
-	return
+func (db *Database) Remove (name string) (status int) {
+	_, exists := db.Tables[name]
+	if !exists {
+		return st.TableNotFound
+	}
+	db.Tables[name] = nil, true
+	
+	return tablefilemanager.Delete(db.Path, name)
 }
