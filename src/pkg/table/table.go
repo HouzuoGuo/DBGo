@@ -4,10 +4,12 @@ import (
 	"os"
 	"time"
 	"strings"
+	"strconv"
 	"column"
 	"constant"
 	"st"
 	"util"
+	"logg"
 	"tablefilemanager"
 )
 
@@ -21,10 +23,14 @@ type Table struct {
 }
 
 func Open(path, name string) (table *Table, status int) {
+	table = new(Table)
 	table.Path = path
 	table.Name = name
+	table.Columns = make(map[string]*column.Column)
+	table.ColumnsInOrder = make([]*column.Column, 0)
 	status = table.Init()
 	if status != st.OK {
+		logg.Err("table", "Open", "Failed to open" + path + name + " Err: " + string(status))
 		table = nil
 	}
 	return
@@ -33,30 +39,33 @@ func Open(path, name string) (table *Table, status int) {
 func (table *Table) Init() (status int) {
 	table.RowLength = 0
 	table.NumberOfColumns = 0
-	table.Columns = make(map[string]*column.Column)
-	table.ColumnsInOrder = make([]*column.Column, 0)
+	table.DefFilePath = table.Path + table.Name + ".def"
+	table.DataFilePath = table.Path + table.Name + ".data"
 	ret := table.OpenFiles()
 	if ret != st.OK {
-		status = st.CannotOpenTableFiles
 		return
 	}
 	defFileInfo, err := table.DefFile.Stat()
 	if err != nil {
+		logg.Err("table", "Init", err.String())
 		status = st.CannotStatTableDefFile
 		return
 	}
 	content := make([]byte, defFileInfo.Size)
+	table.DefFile.Read(content)
 	lines := strings.Split(string(content), "\n")
 	table.NumberOfColumns = len(lines)
 	for _, line := range lines {
-		var aColumn *column.Column
-		aColumn, status = column.ColumnFromDef(table.RowLength, line)
-		if status != st.OK {
-			return
+		if line != "" {
+			var aColumn *column.Column
+			aColumn, status = column.ColumnFromDef(table.RowLength, line)
+			if status != st.OK {
+				return
+			}
+			table.Columns[aColumn.Name] = aColumn
+			table.ColumnsInOrder = append(table.ColumnsInOrder[:], aColumn)
+			table.RowLength += aColumn.Length
 		}
-		table.Columns[aColumn.Name] = aColumn
-		table.ColumnsInOrder = append(table.ColumnsInOrder[:], aColumn)
-		table.RowLength += aColumn.Length
 	}
 	table.RowLength++
 	return
@@ -68,9 +77,11 @@ func (table *Table) OpenFiles() (status int) {
 	if err == nil {
 		table.DataFile, err = os.OpenFile(table.DataFilePath, os.O_RDWR, constant.DataFilePerm)
 		if err != nil {
+			logg.Err("table", "OpenFiles", err.String())
 			return st.CannotOpenTableDataFile
 		}
 	} else {
+		logg.Err("table", "OpenFiles", err.String())
 		return st.CannotOpenTableDefFile
 	}
 	return st.OK
@@ -81,6 +92,7 @@ func (table *Table) Flush() (status int){
 	if err == nil {
 		err = table.DataFile.Sync()
 		if err != nil {
+			logg.Err("table", "Flush", err.String())
 			return st.CannotFlushTableDataFile
 		}
 	} else {
@@ -95,6 +107,7 @@ func (table *Table) Seek(rowNumber int) (status int) {
 	if status == st.OK && rowNumber < numberOfRows {
 		_, err := table.DataFile.Seek(int64(rowNumber * table.RowLength), 0)
 		if err != nil {
+			logg.Err("table", "Seek", err.String())
 			return st.CannotSeekTableDataFile
 		}
 	}
@@ -108,6 +121,7 @@ func (table *Table) SeekColumn(rowNumber int, columnName string) (status int) {
 		if exists {
 			_, err := table.DataFile.Seek(int64(column.Offset), 1)
 			if err != nil {
+				logg.Err("table", "SeekColumn", err.String())
 				return st.CannotSeekTableDataFile
 			}
 		}
@@ -119,24 +133,27 @@ func (table *Table) NumberOfRows() (numberOfRows int, status int) {
 	var dataFileInfo *os.FileInfo
 	dataFileInfo, err := table.DataFile.Stat()
 	if err == nil {
-		numberOfRows = int(dataFileInfo.Size)
+		numberOfRows = int(dataFileInfo.Size) / table.RowLength
 		status = st.OK
 	} else {
+		logg.Err("table", "NumberOfRows", err.String())
 		status = st.CannotStatTableDataFile;
 	}
 	return
 }
 
 func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
+	row = make(map[string]string)
 	status = table.Seek(rowNumber)
 	if status == st.OK {
-		rowInBytes := make([]byte, table.NumberOfColumns)
+		rowInBytes := make([]byte, table.RowLength)
 		_, err := table.DataFile.Read(rowInBytes)
 		if err == nil {
 			for _, column := range table.ColumnsInOrder {
 				row[column.Name] = strings.TrimSpace(string(rowInBytes[column.Offset:column.Offset+column.Length]))
 			}
 		} else {
+			logg.Err("table", "Read", err.String())
 			status = st.CannotReadTableDataFile
 		}
 	}
@@ -165,9 +182,13 @@ func (table *Table) Insert(row map[string]string) (status int) {
 			}
 		}
 		_, err = table.DataFile.WriteString("\n")
-		if err == nil {
+		if err != nil {
+			logg.Err("table", "Insert", err.String())
 			return st.CannotWriteTableDataFile
 		}
+	} else {
+		logg.Err("table", "Insert", err.String())
+		return st.CannotSeekTableDataFile
 	}
 	return st.OK
 }
@@ -231,10 +252,12 @@ func (table *Table) Add(name string, length int) (status int) {
 	if status == st.OK {
 		_, err := table.DefFile.Seek(0, 2)
 		if err != nil {
+			logg.Err("table", "Add", err.String())
 			return st.CannotSeekTableDefFile
 		}
 		_, err = table.DefFile.WriteString(column.ColumnToDef(newColumn))
 		if err != nil {
+			logg.Err("table", "Add", err.String())
 			return st.CannotWriteTableDefFile
 		}
 		table.RowLength += length
@@ -264,7 +287,7 @@ func (table *Table) Remove(name string) (status int) {
 }
 
 func (table *Table) RebuildDataFile() (status int) {
-	tempName := string(time.Nanoseconds())
+	tempName := strconv.Itoa64(time.Nanoseconds())
 	tablefilemanager.Create(table.Path, tempName)
 	var tempTable *Table
 	tempTable, status = Open(table.Path, tempName)

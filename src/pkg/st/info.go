@@ -1,5 +1,5 @@
 package st
 
 const (
-	OK = iota
+	OK = 0
 )
