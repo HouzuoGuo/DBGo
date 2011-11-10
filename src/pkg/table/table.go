@@ -150,7 +150,7 @@ func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
 		_, err := table.DataFile.Read(rowInBytes)
 		if err == nil {
 			for _, column := range table.ColumnsInOrder {
-				row[column.Name] = strings.TrimSpace(string(rowInBytes[column.Offset:column.Offset+column.Length]))
+				row[column.Name] = strings.TrimSpace(string(rowInBytes[column.Offset:column.Offset + column.Length]))
 			}
 		} else {
 			logg.Err("table", "Read", err.String())
@@ -225,7 +225,7 @@ func (table *Table) Update(rowNumber int, row map[string]string) (status int) {
 }
 
 func (table *Table) pushNewColumn(name string, length int) *column.Column{
-	newColumn := &column.Column{Name:name, Length:length}
+	newColumn := &column.Column{Name:name, Offset:table.RowLength - 1, Length:length}
 	table.ColumnsInOrder = append(table.ColumnsInOrder[:], newColumn)
 	table.Columns[name] = newColumn
 	return newColumn
@@ -239,17 +239,13 @@ func (table *Table) Add(name string, length int) (status int) {
 	if len(name) > constant.MaxColumnNameLength {
 		return st.ColumnNameTooLong
 	}
-	newColumn := table.pushNewColumn(name, length)
 	var numberOfRows int
 	numberOfRows, status = table.NumberOfRows()
 	if status == st.OK && numberOfRows > 0 {
-		newColumn.Offset = 0
-		newColumn.Length = 1
-		status = table.RebuildDataFile()
-		newColumn.Offset = table.RowLength
-		newColumn.Length = length
-	}
-	if status == st.OK {
+		status = table.RebuildDataFile(name, length)
+		table.pushNewColumn(name, length)
+	} else {
+		newColumn := table.pushNewColumn(name, length)
 		_, err := table.DefFile.Seek(0, 2)
 		if err != nil {
 			logg.Err("table", "Add", err.String())
@@ -260,8 +256,8 @@ func (table *Table) Add(name string, length int) (status int) {
 			logg.Err("table", "Add", err.String())
 			return st.CannotWriteTableDefFile
 		}
-		table.RowLength += length
 	}
+	table.RowLength += length
 	return
 }
 
@@ -279,14 +275,20 @@ func (table *Table) Remove(name string) (status int) {
 		return st.ColumnNameNotFound
 	}
 	name, length := theColumn.Name, theColumn.Length
-	table.ColumnsInOrder = append(table.ColumnsInOrder[:columnIndex], table.ColumnsInOrder[columnIndex:]...)
+	table.ColumnsInOrder = append(table.ColumnsInOrder[:columnIndex], table.ColumnsInOrder[columnIndex + 1:]...)
 	table.Columns[name] = nil, true
-	status = table.RebuildDataFile()
+	numberOfRows, status := table.NumberOfRows()
+	if status != st.OK {
+		return
+	}
+	if numberOfRows > 0 {
+		status = table.RebuildDataFile("", 0)
+	}
 	table.RowLength -= length
 	return
 }
 
-func (table *Table) RebuildDataFile() (status int) {
+func (table *Table) RebuildDataFile(name string, length int) (status int) {
 	tempName := strconv.Itoa64(time.Nanoseconds())
 	tablefilemanager.Create(table.Path, tempName)
 	var tempTable *Table
@@ -297,19 +299,35 @@ func (table *Table) RebuildDataFile() (status int) {
 	for _, column := range table.ColumnsInOrder {
 		tempTable.Add(column.Name, column.Length)
 	}
+	if name != "" {
+		tempTable.Add(name, length)
+	}
 	var numberOfRows int
 	numberOfRows, status = table.NumberOfRows()
 	if status != st.OK {
 		return
 	}
 	var everFailed bool
-	for i := 0; i < numberOfRows; i ++ {
-		row, ret := table.Read(i)
-		if ret != st.OK {
-			everFailed = true
+	if name == "" {
+		for i := 0; i < numberOfRows; i ++ {
+			row, ret := table.Read(i)
+			if ret != st.OK {
+				everFailed = true
+			}
+			if row["~del"] != "y" {
+				tempTable.Insert(row)
+			}
 		}
-		if row["~del"] != "y" {
-			tempTable.Insert(row)
+	} else {
+		for i := 0; i < numberOfRows; i ++ {
+			row, ret := table.Read(i)
+			if ret != st.OK {
+				everFailed = true
+			}
+			if row["~del"] != "y" {
+				row[name] = ""
+				tempTable.Insert(row)
+			}
 		}
 	}
 	status = tempTable.Flush()
