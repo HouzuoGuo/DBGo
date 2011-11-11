@@ -86,6 +86,21 @@ func (db *Database) Remove (name string) (status int) {
 	return tablefilemanager.Delete(db.Path, name)
 }
 
+func (db *Database) Rename (oldName, newName string) (status int) {
+	_, exists := db.Tables[oldName]
+	if !exists {
+		return st.TableNotFound
+	}
+	_, exists = db.Tables[newName]
+	if exists {
+		return st.TableAlreadyExists
+	}
+	status = tablefilemanager.Rename(db.Path, oldName, newName)
+	db.Tables[newName] = db.Tables[oldName]
+	db.Tables[oldName] = nil, true
+	return st.OK
+}
+
 func (db *Database) Get (name string) (table *table.Table) {
 	table, _ = db.Tables[name]
 	return

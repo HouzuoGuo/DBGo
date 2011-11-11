@@ -1,1 +1,4 @@
-GoDB is going to be a simple relational database engine implemented in Go programming language. It is a programming exercise to myself and hopefully being useful to others when it is completed.
+"GoDB" is a simple relational database engine implemented in Go programming language.
+It is a programming exercise I gave to myself when I began learning programming Go.
+"GoDB" closely resembles the design rationale of "PerlDB" (github.com/HouzuoGuo/PerlDB) plus many improvements.
+

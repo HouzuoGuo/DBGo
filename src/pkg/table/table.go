@@ -239,6 +239,9 @@ func (table *Table) Add(name string, length int) (status int) {
 	if len(name) > constant.MaxColumnNameLength {
 		return st.ColumnNameTooLong
 	}
+	if length <= 0 {
+		return st.InvalidColumnLength
+	}
 	var numberOfRows int
 	numberOfRows, status = table.NumberOfRows()
 	if status == st.OK && numberOfRows > 0 {

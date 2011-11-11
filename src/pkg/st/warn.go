@@ -1,6 +1,6 @@
 package st
 
 const (
-	ColumnNameNotFound = 28
-	FailedToCopyCertainRows = 29
+	ColumnNameNotFound = 200
+	FailedToCopyCertainRows = 201
 )
