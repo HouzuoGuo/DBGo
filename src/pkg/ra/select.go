@@ -5,7 +5,7 @@ import (
 	"st"
 )
 
-func (r *Result) Select ( alias string, filter *filter.Filter, parameter string) (self *Result, status int) {
+func (r *Result) Select ( alias string, filter filter.Filter, parameter string) (self *Result, status int) {
 	tableName := r.Aliases[alias].TableName
 	columnName := r.Aliases[alias].ColumnName
 	table := r.Tables[tableName].Table
