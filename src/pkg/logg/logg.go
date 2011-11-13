@@ -1,3 +1,5 @@
+// Error and debugging messages.
+
 package logg
 
 import (

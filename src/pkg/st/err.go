@@ -1,32 +1,34 @@
+// Error codes.
+
 package st
 
 const (
 	CannotOpenDatabaseDirectory = 100
 	CannotReadDatabaseDirectory = 101
-	CannotOpenTableFiles = 102
-	CannotOpenTableDefFile = 103
-	CannotOpenTableDataFile = 104
-	InvalidColumnDefinition = 105
-	CannotStatTableDefFile = 106
-	CannotStatTableDataFile = 107
-	CannotSeekTableDataFile = 108
-	CannotSeekTableDefFile = 109
-	CannotReadTableDataFile = 110
-	CannotWriteTableDataFile = 111
-	CannotWriteTableDefFile = 112
-	CannotFlushTableDefFile = 113
-	CannotFlushTableDataFile = 114
-	TableDoesNotHaveDelColumn = 115
-	TableNameTooLong = 116
-	TableAlreadyExists = 117
-	CannotCreateTableFile = 118
-	CannotCreateTableDir = 119
-	CannotRenameTableFile = 120
-	CannotRenameTableDir = 121
-	CannotRemoveTableFile = 122
-	CannotRemoveTableDir = 123
-	ColumnAlreadyExists = 124
-	ColumnNameTooLong = 125
-	TableNotFound = 126
-	InvalidColumnLength = 127
+	CannotOpenTableFiles        = 102
+	CannotOpenTableDefFile      = 103
+	CannotOpenTableDataFile     = 104
+	InvalidColumnDefinition     = 105
+	CannotStatTableDefFile      = 106
+	CannotStatTableDataFile     = 107
+	CannotSeekTableDataFile     = 108
+	CannotSeekTableDefFile      = 109
+	CannotReadTableDataFile     = 110
+	CannotWriteTableDataFile    = 111
+	CannotWriteTableDefFile     = 112
+	CannotFlushTableDefFile     = 113
+	CannotFlushTableDataFile    = 114
+	TableDoesNotHaveDelColumn   = 115
+	TableNameTooLong            = 116
+	TableAlreadyExists          = 117
+	CannotCreateTableFile       = 118
+	CannotCreateTableDir        = 119
+	CannotRenameTableFile       = 120
+	CannotRenameTableDir        = 121
+	CannotRemoveTableFile       = 122
+	CannotRemoveTableDir        = 123
+	ColumnAlreadyExists         = 124
+	ColumnNameTooLong           = 125
+	TableNotFound               = 126
+	InvalidColumnLength         = 127
 )

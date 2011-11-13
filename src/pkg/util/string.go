@@ -1,3 +1,5 @@
+// General utilities for string handling.
+
 package util
 
 import (
@@ -20,12 +22,12 @@ func TrimLength(str string, length int) (trimmed string) {
 // Returns file name (without extension) and extension of a file name.
 func FilenameParts(filename string) (name, extension string) {
 	dotIndex := strings.LastIndex(filename, ".")
-	if dotIndex == -1 || dotIndex == len(filename) - 1 {
+	if dotIndex == -1 || dotIndex == len(filename)-1 {
 		name = filename
 		extension = ""
 	} else {
 		name = filename[:dotIndex]
-		extension = filename[dotIndex + 1:]
+		extension = filename[dotIndex+1:]
 	}
 	return
 }

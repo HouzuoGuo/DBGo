@@ -1,6 +1,8 @@
+// Warning codes.
+
 package st
 
 const (
-	ColumnNameNotFound = 200
+	ColumnNameNotFound      = 200
 	FailedToCopyCertainRows = 201
 )
