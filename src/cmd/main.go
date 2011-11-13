@@ -17,8 +17,9 @@ func main() {
 	t1.Add("c2", 4)
 	t1.Insert(map[string]string{"c1": "45678"})
 	t1.Insert(map[string]string{"c1": "56789", "c2": "hahahahahaahahah"})
+	t1.Update(4, map[string]string{"c2":"blah blah"})
 	t1.Delete(0)
 	fmt.Println(t1.Remove("c1"))
 	fmt.Println(db.Rename("t1", "new t1"))
-	fmt.Println(db.Remove("new t1"))
+	//fmt.Println(db.Remove("new t1"))
 }
