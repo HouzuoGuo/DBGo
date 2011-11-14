@@ -11,5 +11,5 @@ func Err(pkg, function, err interface{}) {
 }
 
 func Debug(pkg, function, msg interface{}) {
-	fmt.Println("Debug:", pkg, ".", function, msg)
+	fmt.Println("Debug:", pkg, function, msg)
 }

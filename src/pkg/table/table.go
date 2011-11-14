@@ -324,8 +324,7 @@ func (table *Table) Remove(name string) (status int) {
 	return
 }
 
-// Rebuild data file, get rid off removed rows, optionally leaves space for a 
-// new column.
+// Rebuild data file, get rid off removed rows, optionally leaves space for a new column.
 func (table *Table) RebuildDataFile(name string, length int) (status int) {
 	// Create a temporary table named by an accurate timestamp.
 	tempName := strconv.Itoa64(time.Nanoseconds())
@@ -361,8 +360,8 @@ func (table *Table) RebuildDataFile(name string, length int) (status int) {
 			}
 		}
 	} else {
-		// If adding new column, not only copy rows from this table to the temp 
-		// one, also leave space for the new column's values.
+		// If adding new column, not only copy rows from this table to the temporary one.
+		// Also leave space for the new column's values.
 		for i := 0; i < numberOfRows; i++ {
 			row, ret := table.Read(i)
 			if ret != st.OK {

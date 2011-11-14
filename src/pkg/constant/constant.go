@@ -8,6 +8,7 @@ const (
 	TableDirPerm        = 0755 // permission for creating table directory
 	MaxColumnNameLength = 30
 	MaxTableNameLength  = 30
+	ThePrefix           = "~" // Do not use this prefix to name a database thingy
 )
 
 // Returns the extensions names which table files have.
@@ -17,7 +18,7 @@ func TableFiles() []string {
 
 // Returns the column names and lengths which a new table must have. 
 func DatabaseColumns() map[string]int {
-	return map[string]int{"~del": 1}
+	return map[string]int{ThePrefix + "del": 1}
 }
 
 // Returns the directory suffixes which table directories have. 

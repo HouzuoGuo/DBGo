@@ -31,4 +31,6 @@ const (
 	ColumnNameTooLong           = 125
 	TableNotFound               = 126
 	InvalidColumnLength         = 127
+	AliasNotFound               = 128
+	AliasAlreadyExists          = 129
 )
