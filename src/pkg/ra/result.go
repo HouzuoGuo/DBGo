@@ -13,7 +13,7 @@ import (
 
 // Table and the selected rows in the table.
 type TableResult struct {
-	Table *table.Table
+	Table      *table.Table
 	RowNumbers []int
 }
 
@@ -24,7 +24,7 @@ type TableColumn struct {
 
 // Relational algebras result. For convenience, the thingy is called RA result.
 type Result struct {
-	Tables map[string]*TableResult
+	Tables  map[string]*TableResult
 	Aliases map[string]*TableColumn
 }
 
@@ -37,7 +37,7 @@ func New() (r *Result) {
 }
 
 // Returns a copy of the Result. 
-func (r Result) Copy() (*Result) {
+func (r Result) Copy() *Result {
 	return &r
 }
 
@@ -70,10 +70,34 @@ func (r *Result) Load(t *table.Table) (self *Result, status int) {
 func (r *Result) Report() {
 	var content string
 	for name, t := range r.Tables {
-		content += "Table: " + name + "\t" + fmt.Sprint(t.RowNumbers) + "\n";
+		content += "Table: " + name + "\t" + fmt.Sprint(t.RowNumbers) + "\n"
 	}
 	for alias, c := range r.Aliases {
-		content += "Alias " + alias + "\tis " + c.TableName + "." + c.ColumnName + "\n";
+		content += "Alias " + alias + "\tis " + c.TableName + "." + c.ColumnName + "\n"
 	}
 	logg.Debug("ra", "Report", content)
+}
+
+// Reads a row and return a map representation (name1:value1, name2:value2...)
+func (r *Result) Read(rowNumber int) (row map[string]string, status int) {
+	row = make(map[string]string)
+	for _, column := range r.Aliases {
+		columnName := column.ColumnName
+		table := r.Tables[column.TableName]
+		tableRow, status := table.Table.Read(table.RowNumbers[rowNumber])
+		if status != st.OK {
+			break
+		}
+		row[columnName] = tableRow[columnName]
+	}
+	return
+}
+
+// Returns the number of rows in RA result.
+func (r *Result) NumberOfRows() int {
+	// All tables have equal number of rows.
+	for _, table := range r.Tables {
+		return len(table.RowNumbers)
+	}
+	return 0
 }

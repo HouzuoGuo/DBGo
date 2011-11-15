@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"database"
 	"ra"
-	"filter"
+	//"filter"
 )
 
 func test() {
@@ -17,15 +17,24 @@ func test() {
 	t1.Add("c2", 4)
 	t1.Insert(map[string]string{"c1": "4"})
 	t1.Insert(map[string]string{"c1": "5", "c2": "haha"})
+
+	t2, _ := db.New("t2")
+	t2.Add("c1", 5)
+	t2.Insert(map[string]string{"c1": "5"})
+	t2.Insert(map[string]string{"c1": "4"})
+	t2.Insert(map[string]string{"c1": "3"})
+	t2.Add("c2", 4)
+	t2.Insert(map[string]string{"c1": "2"})
+	t2.Insert(map[string]string{"c1": "1", "c2": "haha"})
+
 	r := ra.New()
 	r.Load(t1)
-	r.Select("c1", filter.Gt{}, "3")
+	r.NLJoin("c1", t2, "c1")
 	r.Report()
-	r.Redefine("c1", "new c1")
-	r.Report()
-	r.Project()
-	r.Report()
-	
+	for i := 0; i < r.NumberOfRows(); i++ {
+		fmt.Println(r.Read(i))
+	}
+
 }
 
 func main() {
