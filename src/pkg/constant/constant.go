@@ -11,7 +11,8 @@ const (
 	MaxTableNameLength        = 30
 	ThePrefix                 = "~" // Do not use this prefix to name a database thingy
 	MaxTriggerFuncNameLength  = 50
-	MaxTriggerParameterLength = 50
+	MaxTriggerParameterLength = 200
+	TriggerOperationLength    = 4
 )
 
 // Returns the extensions names which table files have.
@@ -32,6 +33,6 @@ func TableDirs() []string {
 // Returns the column names and lengths of a database trigger lookup table.
 func TriggerLookupTable() map[string]int {
 	return map[string]int{"TABLE": MaxTableNameLength, "COLUMN": MaxColumnNameLength,
-		"FUNC": MaxTriggerFuncNameLength, "P1": MaxTriggerParameterLength,
-		"P2": MaxTriggerParameterLength}
+		"FUNC": MaxTriggerFuncNameLength, "OP": TriggerOperationLength,
+		"PARAM": MaxTriggerParameterLength}
 }

@@ -153,7 +153,10 @@ func (db *Database) Rename(oldName, newName string) (status int) {
 }
 
 // Returns a Table by name.
-func (db *Database) Get(name string) (table *table.Table) {
-	table, _ = db.Tables[name]
-	return
+func (db *Database) Get(name string) (table *table.Table, status int) {
+	table, exists := db.Tables[name]
+	if !exists {
+		return nil, st.TableNotFound
+	}
+	return table, st.OK
 }
