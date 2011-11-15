@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"database"
 	"ra"
-	//"filter"
+	"filter"
 )
 
 func test() {
@@ -29,12 +29,9 @@ func test() {
 
 	r := ra.New()
 	r.Load(t1)
-	r.NLJoin("c1", t2, "c1")
+	r.MultipleSelect(ra.Condition{Alias:"c1", Filter:filter.Gt{}, Parameter:"2"},
+					 ra.Condition{Alias:"c1", Filter:filter.Lt{}, Parameter:"4"})
 	r.Report()
-	for i := 0; i < r.NumberOfRows(); i++ {
-		fmt.Println(r.Read(i))
-	}
-
 }
 
 func main() {
