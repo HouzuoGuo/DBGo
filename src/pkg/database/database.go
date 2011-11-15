@@ -55,6 +55,46 @@ func Open(path string) (db *Database, status int) {
 		}
 	}
 	db.Path = path
+	return db, db.PrepareForTriggers(false)
+}
+
+// Prepare the database for using table triggers.
+// If override is set to true, remove all existing table triggers and re-create trigger lookup tables.
+func (db *Database) PrepareForTriggers(override bool) (status int) {
+	if override {
+		// Remove all existing table triggers.
+		db.Remove("~before")
+		db.Remove("~after")
+	} else {
+		// If .init file exists, no need to redo the process.
+		_, err := os.Open(db.Path + ".init")
+		if err == nil {
+			return st.OK
+		}
+	}
+	// Create flag file .init.
+	_, err := os.OpenFile(db.Path+".init", os.O_CREATE, constant.InitFilePerm)
+	if err != nil {
+		return st.CannotCreateInitFile
+	}
+	// Create ~before ("before" triggers) and ~after ("after" triggers) tables.
+	beforeTable, status := db.New("~before")
+	if status != st.OK {
+		return
+	}
+	afterTable, status := db.New("~after")
+	if status != st.OK {
+		return
+	}
+	// Prepare trigger lookup tables - add necessary columns.
+	for _, t := range [...]*table.Table{beforeTable, afterTable} {
+		for name, length := range constant.TriggerLookupTable() {
+			status = t.Add(name, length)
+			if status != st.OK {
+				return
+			}
+		}
+	}
 	return
 }
 

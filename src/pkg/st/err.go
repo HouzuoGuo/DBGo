@@ -33,4 +33,5 @@ const (
 	InvalidColumnLength         = 127
 	AliasNotFound               = 128
 	AliasAlreadyExists          = 129
+	CannotCreateInitFile        = 130
 )

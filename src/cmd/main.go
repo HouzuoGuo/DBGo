@@ -8,7 +8,8 @@ import (
 )
 
 func test() {
-	db, _ := database.Open("/home/houzuo/temp_db/")
+	db, err := database.Open("/home/houzuo/temp_db/")
+	fmt.Print(err)
 	t1, _ := db.New("t1")
 	t1.Add("c1", 5)
 	t1.Insert(map[string]string{"c1": "1"})
@@ -29,8 +30,8 @@ func test() {
 
 	r := ra.New()
 	r.Load(t1)
-	r.MultipleSelect(ra.Condition{Alias:"c1", Filter:filter.Gt{}, Parameter:"2"},
-					 ra.Condition{Alias:"c1", Filter:filter.Lt{}, Parameter:"4"})
+	r.MultipleSelect(ra.Condition{Alias: "c1", Filter: filter.Gt{}, Parameter: "2"},
+		ra.Condition{Alias: "c1", Filter: filter.Lt{}, Parameter: "4"})
 	r.Report()
 }
 
