@@ -9,7 +9,7 @@ import (
 
 func test() {
 	db, err := database.Open("/home/houzuo/temp_db/")
-	fmt.Print(err)
+	fmt.Println("Open database?", err)
 	t1, _ := db.New("t1")
 	t1.Add("c1", 5)
 	t1.Insert(map[string]string{"c1": "1"})
@@ -30,12 +30,12 @@ func test() {
 
 	r := ra.New()
 	r.Load(t1)
-	r.MultipleSelect(ra.Condition{Alias: "c1", Filter: filter.Gt{}, Parameter: "2"},
-		ra.Condition{Alias: "c1", Filter: filter.Lt{}, Parameter: "4"})
+	r.MultipleSelect(ra.Condition{Alias: "c1", Filter: filter.Gt{}, Parameter: 3},
+		ra.Condition{Alias: "c1", Filter: filter.Lt{}, Parameter: 5})
 	r.Report()
 }
 
 func main() {
-	fmt.Print("Hello")
+	fmt.Println("Hello")
 	test()
 }

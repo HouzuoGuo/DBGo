@@ -6,7 +6,7 @@ import (
 )
 
 // Relational algebra select.
-func (r *Result) Select(alias string, filter filter.Filter, parameter string) (self *Result, status int) {
+func (r *Result) Select(alias string, filter filter.Filter, parameter interface{}) (self *Result, status int) {
 	tableName := r.Aliases[alias].TableName
 	columnName := r.Aliases[alias].ColumnName
 	table := r.Tables[tableName].Table
@@ -36,8 +36,9 @@ func (r *Result) Select(alias string, filter filter.Filter, parameter string) (s
 
 // A condition for relational algebra select.
 type Condition struct {
-	Alias, Parameter string
+	Alias string
 	Filter           filter.Filter
+	Parameter interface{}
 }
 
 // Same as relational algebra select but accepts multiple conditions.
