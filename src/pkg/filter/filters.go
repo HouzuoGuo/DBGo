@@ -12,19 +12,19 @@ type Filter interface {
 }
 
 type Eq struct {
-	Filter
+
 }
 
-// Tests if two strings' value are identical.
+// Tests if two strings are equal.
 func (f Eq) Cmp(v1, v2 interface{}) bool {
 	return fmt.Sprint(v1) == fmt.Sprint(v2)
 }
 
 type Lt struct {
-	Filter
+
 }
-// Tests if value 1 is less than value2. The values are converted to double 
-// before comparison. Always returns false if number format is unexpected.
+// Tests if value 1 is less than value2. The values are converted to double before comparison. 
+// Always returns false if number format is unexpected.
 func (f Lt) Cmp(v1, v2 interface{}) bool {
 	d1, err := strconv.Atof64(fmt.Sprint(v1))
 	if err != nil {
@@ -38,10 +38,10 @@ func (f Lt) Cmp(v1, v2 interface{}) bool {
 }
 
 type Gt struct {
-	Filter
+
 }
-// Tests if value 1 is greater than value2. The values are converted to double 
-// before comparison. Always returns true if number format is unexpected.
+// Tests if value 1 is greater than value2. The values are converted to double before comparison. 
+// Always returns true if number format is unexpected.
 func (f Gt) Cmp(v1, v2 interface{}) bool {
 	d1, err := strconv.Atof64(fmt.Sprint(v1))
 	if err != nil {

@@ -36,8 +36,8 @@ func (r *Result) Select(alias string, filter filter.Filter, parameter interface{
 
 // A condition for relational algebra select.
 type Condition struct {
-	Alias string
-	Filter           filter.Filter
+	Alias     string
+	Filter    filter.Filter
 	Parameter interface{}
 }
 
