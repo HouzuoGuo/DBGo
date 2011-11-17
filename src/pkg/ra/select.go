@@ -6,7 +6,7 @@ import (
 )
 
 // Relational algebra select.
-func (r *Result) Select(alias string, filter filter.Filter, parameter interface{}) (self *Result, status int) {
+func (r *Result) Select(alias string, filter filter.Filter, parameter interface{}) (*Result,  int) {
 	tableName := r.Aliases[alias].TableName
 	columnName := r.Aliases[alias].ColumnName
 	table := r.Tables[tableName].Table
@@ -16,7 +16,7 @@ func (r *Result) Select(alias string, filter filter.Filter, parameter interface{
 	for i := 0; i < len(rowNumbers); i++ {
 		row, status := table.Read(rowNumbers[i])
 		if status != st.OK {
-			return
+			return r, status
 		}
 		// Keep the row if it passes the filter and is not a deleted row.
 		if row["~del"] != "y" && filter.Cmp(row[columnName], parameter) {
@@ -31,7 +31,7 @@ func (r *Result) Select(alias string, filter filter.Filter, parameter interface{
 		}
 		table.RowNumbers = newRowNumbers
 	}
-	return self, status
+	return r, st.OK
 }
 
 // A condition for relational algebra select.
@@ -42,9 +42,9 @@ type Condition struct {
 }
 
 // Same as relational algebra select but accepts multiple conditions.
-func (r *Result) MultipleSelect(conditions ...Condition) (self *Result, status int) {
+func (r *Result) MultipleSelect(conditions ...Condition) (*Result, int) {
 	for _, condition := range conditions {
-		_, status = r.Select(condition.Alias, condition.Filter, condition.Parameter)
+		_, status := r.Select(condition.Alias, condition.Filter, condition.Parameter)
 		if status != st.OK {
 			return r, status
 		}

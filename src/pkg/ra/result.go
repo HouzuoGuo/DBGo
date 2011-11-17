@@ -42,7 +42,7 @@ func (r Result) Copy() *Result {
 }
 
 // Load all rows of a table into RA result.
-func (r *Result) Load(t *table.Table) (self *Result, status int) {
+func (r *Result) Load(t *table.Table) (*Result, int) {
 	_, exists := r.Tables[t.Name]
 	if exists {
 		return r, st.TableAlreadyExists
@@ -79,7 +79,8 @@ func (r *Result) Report() {
 }
 
 // Reads a row and return a map representation (name1:value1, name2:value2...)
-func (r *Result) Read(rowNumber int) (row map[string]string, status int) {
+func (r *Result) Read(rowNumber int) (map[string]string, int) {
+	var row map[string]string
 	row = make(map[string]string)
 	for _, column := range r.Aliases {
 		columnName := column.ColumnName
@@ -90,7 +91,7 @@ func (r *Result) Read(rowNumber int) (row map[string]string, status int) {
 		}
 		row[columnName] = tableRow[columnName]
 	}
-	return
+	return row, st.OK
 }
 
 // Returns the number of rows in RA result.

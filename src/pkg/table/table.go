@@ -24,35 +24,35 @@ type Table struct {
 }
 
 // Opens a table.
-func Open(path, name string) (table *Table, status int) {
+func Open(path, name string) (*Table, int) {
+	var table *Table
 	table = new(Table)
 	table.Path = path
 	table.Name = name
-	status = table.Init()
+	status := table.Init()
 	if status != st.OK {
 		logg.Err("table", "Open", "Failed to open"+path+name+" Err: "+string(status))
-		table = nil
+		return nil, status
 	}
-	return
+	return table, st.OK
 }
 
 // Load the table (column definitions, etc.).
-func (table *Table) Init() (status int) {
+func (table *Table) Init() (int) {
 	// This function may be called multiple times, thus clear previous state.
 	table.RowLength = 0
 	table.Columns = make(map[string]*column.Column)
 	table.ColumnsInOrder = make([]*column.Column, 0)
 	table.DefFilePath = table.Path + table.Name + ".def"
 	table.DataFilePath = table.Path + table.Name + ".data"
-	ret := table.OpenFiles()
-	if ret != st.OK {
-		return
+	status := table.OpenFiles()
+	if status != st.OK {
+		return status
 	}
 	defFileInfo, err := table.DefFile.Stat()
 	if err != nil {
 		logg.Err("table", "Init", err.String())
-		status = st.CannotStatTableDefFile
-		return
+		return st.CannotStatTableDefFile
 	}
 	// Read definition file into memeory.
 	content := make([]byte, defFileInfo.Size)
@@ -65,7 +65,7 @@ func (table *Table) Init() (status int) {
 			// Convert the definition into a Column
 			aColumn, status = column.ColumnFromDef(table.RowLength, line)
 			if status != st.OK {
-				return
+				return status
 			}
 			table.Columns[aColumn.Name] = aColumn
 			table.ColumnsInOrder = append(table.ColumnsInOrder[:], aColumn)
@@ -73,11 +73,11 @@ func (table *Table) Init() (status int) {
 		}
 	}
 	table.RowLength++
-	return
+	return st.OK
 }
 
 // Opens file handles.
-func (table *Table) OpenFiles() (status int) {
+func (table *Table) OpenFiles() (int) {
 	var err os.Error
 	table.DefFile, err = os.OpenFile(table.DefFilePath, os.O_RDWR, constant.DataFilePerm)
 	if err == nil {
@@ -94,7 +94,7 @@ func (table *Table) OpenFiles() (status int) {
 }
 
 // Flushes table's files
-func (table *Table) Flush() (status int) {
+func (table *Table) Flush() (int) {
 	err := table.DefFile.Sync()
 	if err == nil {
 		err = table.DataFile.Sync()
@@ -109,9 +109,9 @@ func (table *Table) Flush() (status int) {
 }
 
 // Seeks to a row (e.g. row number 10).
-func (table *Table) Seek(rowNumber int) (status int) {
+func (table *Table) Seek(rowNumber int) (int) {
 	var numberOfRows int
-	numberOfRows, status = table.NumberOfRows()
+	numberOfRows, status := table.NumberOfRows()
 	if status == st.OK && rowNumber < numberOfRows {
 		_, err := table.DataFile.Seek(int64(rowNumber*table.RowLength), 0)
 		if err != nil {
@@ -123,8 +123,8 @@ func (table *Table) Seek(rowNumber int) (status int) {
 }
 
 // Seeks to a row and column (e.g. row number 10 column "NAME").
-func (table *Table) SeekColumn(rowNumber int, columnName string) (status int) {
-	status = table.Seek(rowNumber)
+func (table *Table) SeekColumn(rowNumber int, columnName string) (int) {
+	status := table.Seek(rowNumber)
 	if status == st.OK {
 		column, exists := table.Columns[columnName]
 		if exists {
@@ -139,23 +139,22 @@ func (table *Table) SeekColumn(rowNumber int, columnName string) (status int) {
 }
 
 // Returns the number of rows in this table.
-func (table *Table) NumberOfRows() (numberOfRows int, status int) {
+func (table *Table) NumberOfRows() (int, int) {
+	var numberOfRows int
 	var dataFileInfo *os.FileInfo
 	dataFileInfo, err := table.DataFile.Stat()
-	if err == nil {
-		numberOfRows = int(dataFileInfo.Size) / table.RowLength
-		status = st.OK
-	} else {
+	if err != nil {
 		logg.Err("table", "NumberOfRows", err.String())
-		status = st.CannotStatTableDataFile
+		return 0, st.CannotStatTableDataFile
 	}
-	return
+	numberOfRows = int(dataFileInfo.Size) / table.RowLength
+	return numberOfRows, st.OK
 }
 
 // Reads a row and return a map representation (name1:value1, name2:value2...)
-func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
-	row = make(map[string]string)
-	status = table.Seek(rowNumber)
+func (table *Table) Read(rowNumber int) (map[string]string, int) {
+	row := make(map[string]string)
+	status := table.Seek(rowNumber)
 	if status == st.OK {
 		rowInBytes := make([]byte, table.RowLength)
 		_, err := table.DataFile.Read(rowInBytes)
@@ -167,14 +166,14 @@ func (table *Table) Read(rowNumber int) (row map[string]string, status int) {
 			}
 		} else {
 			logg.Err("table", "Read", err.String())
-			status = st.CannotReadTableDataFile
+			return nil, st.CannotReadTableDataFile
 		}
 	}
-	return
+	return row, st.OK
 }
 
 // Writes a column value without seeking to a cursor position.
-func (table *Table) Write(column *column.Column, value string) (status int) {
+func (table *Table) Write(column *column.Column, value string) (int) {
 	_, err := table.DataFile.WriteString(util.TrimLength(value, column.Length))
 	if err != nil {
 		return st.CannotWriteTableDataFile
@@ -183,7 +182,7 @@ func (table *Table) Write(column *column.Column, value string) (status int) {
 }
 
 // Inserts a row to the bottom of the table.
-func (table *Table) Insert(row map[string]string) (status int) {
+func (table *Table) Insert(row map[string]string) (int) {
 	// Seek to EOF
 	_, err := table.DataFile.Seek(0, 2)
 	if err == nil {
@@ -194,9 +193,9 @@ func (table *Table) Insert(row map[string]string) (status int) {
 				value = ""
 			}
 			// Keep writing the column value.
-			status = table.Write(column, value)
+			status := table.Write(column, value)
 			if status != st.OK {
-				return
+				return status
 			}
 		}
 		// Write a new-line character.
@@ -213,37 +212,37 @@ func (table *Table) Insert(row map[string]string) (status int) {
 }
 
 // Deletes a row.
-func (table *Table) Delete(rowNumber int) (status int) {
-	status = table.Seek(rowNumber)
+func (table *Table) Delete(rowNumber int) (int) {
+	status := table.Seek(rowNumber)
 	if status == st.OK {
 		del, exists := table.Columns["~del"]
 		if exists {
 			// Set ~del column value to "y" indicating the row is deleted
-			status = table.Write(del, "y")
+			return table.Write(del, "y")
 		} else {
-			status = st.TableDoesNotHaveDelColumn
+			return st.TableDoesNotHaveDelColumn
 		}
 	}
-	return
+	return st.OK
 }
 
 // Updates a row.
-func (table *Table) Update(rowNumber int, row map[string]string) (status int) {
+func (table *Table) Update(rowNumber int, row map[string]string) (int) {
 	for columnName, value := range row {
 		column, exists := table.Columns[columnName]
 		if exists {
 			// Seek to the row and column, then write value in.
-			status = table.SeekColumn(rowNumber, column.Name)
+			status := table.SeekColumn(rowNumber, column.Name)
 			if status != st.OK {
-				return
+				return status
 			}
 			status = table.Write(column, value)
 			if status != st.OK {
-				return
+				return status
 			}
 		}
 	}
-	return
+	return st.OK
 }
 
 // Puts a new column in the Table struct.
@@ -255,7 +254,7 @@ func (table *Table) pushNewColumn(name string, length int) *column.Column {
 }
 
 // Adds a new column.
-func (table *Table) Add(name string, length int) (status int) {
+func (table *Table) Add(name string, length int) (int) {
 	_, exists := table.Columns[name]
 	if exists {
 		return st.ColumnAlreadyExists
@@ -267,7 +266,7 @@ func (table *Table) Add(name string, length int) (status int) {
 		return st.InvalidColumnLength
 	}
 	var numberOfRows int
-	numberOfRows, status = table.NumberOfRows()
+	numberOfRows, status := table.NumberOfRows()
 	if status == st.OK && numberOfRows > 0 {
 		// Rebuild data file if there are already rows in the table.
 		// (To leave space for the new column)
@@ -288,11 +287,11 @@ func (table *Table) Add(name string, length int) (status int) {
 		}
 	}
 	table.RowLength += length
-	return
+	return st.OK
 }
 
 // Removes a column.
-func (table *Table) Remove(name string) (status int) {
+func (table *Table) Remove(name string) (int) {
 	var theColumn *column.Column
 	// Find index of the column.
 	var columnIndex int
@@ -313,7 +312,7 @@ func (table *Table) Remove(name string) (status int) {
 	table.Columns[name] = nil, true
 	numberOfRows, status := table.NumberOfRows()
 	if status != st.OK {
-		return
+		return status
 	}
 	if numberOfRows > 0 {
 		// Rebuild data file if there are already rows in the table.
@@ -321,18 +320,18 @@ func (table *Table) Remove(name string) (status int) {
 		status = table.RebuildDataFile("", 0)
 	}
 	table.RowLength -= length
-	return
+	return st.OK
 }
 
 // Rebuild data file, get rid off removed rows, optionally leaves space for a new column.
-func (table *Table) RebuildDataFile(name string, length int) (status int) {
+func (table *Table) RebuildDataFile(name string, length int) (int) {
 	// Create a temporary table named by an accurate timestamp.
 	tempName := strconv.Itoa64(time.Nanoseconds())
 	tablefilemanager.Create(table.Path, tempName)
 	var tempTable *Table
-	tempTable, status = Open(table.Path, tempName)
+	tempTable, status := Open(table.Path, tempName)
 	if status != st.OK {
-		return
+		return status
 	}
 	// Put all columns of this table to the temporary table.
 	for _, column := range table.ColumnsInOrder {
@@ -345,7 +344,7 @@ func (table *Table) RebuildDataFile(name string, length int) (status int) {
 	var numberOfRows int
 	numberOfRows, status = table.NumberOfRows()
 	if status != st.OK {
-		return
+		return status
 	}
 	var everFailed bool
 	if name == "" {
@@ -376,8 +375,7 @@ func (table *Table) RebuildDataFile(name string, length int) (status int) {
 	// Flush all the changes made to temporary table.
 	status = tempTable.Flush()
 	if everFailed || status != st.OK {
-		status = st.FailedToCopyCertainRows
-		return
+		return st.FailedToCopyCertainRows
 	}
 	// Delete the old table (one that is rebuilt), and rename the temporary 
 	// table to the name of the rebuilt table.
@@ -389,5 +387,5 @@ func (table *Table) RebuildDataFile(name string, length int) (status int) {
 			return table.OpenFiles()
 		}
 	}
-	return
+	return st.OK
 }

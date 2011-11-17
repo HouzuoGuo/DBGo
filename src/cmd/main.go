@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"database"
-	"ra"
-	"filter"
+	"transaction"
+	"constraint"
 )
 
 func test() {
@@ -27,12 +27,11 @@ func test() {
 	t2.Add("c2", 4)
 	t2.Insert(map[string]string{"c1": "2"})
 	t2.Insert(map[string]string{"c1": "1", "c2": "haha"})
-
-	r := ra.New()
-	r.Load(t1)
-	r.MultipleSelect(ra.Condition{Alias: "c1", Filter: filter.Gt{}, Parameter: 3},
-		ra.Condition{Alias: "c1", Filter: filter.Lt{}, Parameter: 5})
-	r.Report()
+	
+	constraint.PK(db, t1, "c1")
+	
+	tr := transaction.New(db)
+	fmt.Println("Insert:", tr.Insert(t1, map[string]string{"c1":"1"}))
 }
 
 func main() {

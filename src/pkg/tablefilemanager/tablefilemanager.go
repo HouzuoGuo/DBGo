@@ -9,10 +9,9 @@ import (
 )
 
 // Creates table files.
-func Create(path string, name string) (status int) {
+func Create(path string, name string) (int) {
 	if len(name) > constant.MaxTableNameLength {
-		status = st.TableNameTooLong
-		return
+		return st.TableNameTooLong
 	}
 	// Create table files with extension names.
 	for _, ext := range constant.TableFiles() {
@@ -32,7 +31,7 @@ func Create(path string, name string) (status int) {
 }
 
 // Renames table files.
-func Rename(path string, oldName string, newName string) (status int) {
+func Rename(path string, oldName string, newName string) (int) {
 	for _, ext := range constant.TableFiles() {
 		err := os.Rename(path+oldName+ext, path+newName+ext)
 		if err != nil {
@@ -49,7 +48,7 @@ func Rename(path string, oldName string, newName string) (status int) {
 }
 
 // Deletes table files
-func Delete(path string, name string) (status int) {
+func Delete(path string, name string) (int) {
 	for _, ext := range constant.TableFiles() {
 		err := os.Remove(path + name + ext)
 		if err != nil {

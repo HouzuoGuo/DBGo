@@ -4,10 +4,11 @@ import (
 	"table"
 	"database"
 	"st"
+	"fmt"
 )
 
 // Look for a value in a table's column, returns true if the value is found. 
-func find(column, value string, t *table.Table) (found bool, status int) {
+func find(column, value string, t *table.Table) (bool, int) {
 	numberOfRows, status := t.NumberOfRows()
 	if status != st.OK {
 		return false, status
@@ -32,6 +33,7 @@ type PK struct {
 func (pk PK) Execute(db *database.Database, t *table.Table, column string, extraParameters []string, row1, row2 map[string]string) int {
 	found, status := find(column, row1[column], t)
 	if found && status == st.OK {
+		fmt.Println("PK returning", found, status)
 		return st.DuplicatedPKValue
 	}
 	return status

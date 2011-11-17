@@ -6,7 +6,7 @@ import (
 )
 
 // Relational algebra project.
-func (r *Result) Project(aliases ...string) (self *Result, status int) {
+func (r *Result) Project(aliases ...string) (*Result, int) {
 	for presentAlias, _ := range r.Aliases {
 		found := false
 		tableName := r.Aliases[presentAlias].TableName

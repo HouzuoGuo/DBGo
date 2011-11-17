@@ -16,7 +16,8 @@ type Column struct {
 }
 
 // Constructs a Column from a column's text definition.
-func ColumnFromDef(offset int, definition string) (column *Column, status int) {
+func ColumnFromDef(offset int, definition string) (*Column, int) {
+	var column *Column
 	// Extract length and name from the definition which should be "name:length"
 	lengthName := strings.Split(definition, ":")
 	length, err := strconv.Atoi(lengthName[1])
@@ -25,7 +26,7 @@ func ColumnFromDef(offset int, definition string) (column *Column, status int) {
 		return nil, st.InvalidColumnDefinition
 	}
 	column = &Column{Offset: offset, Length: length, Name: lengthName[0]}
-	return
+	return column, st.OK
 }
 
 // Constructs a text definition of a column.

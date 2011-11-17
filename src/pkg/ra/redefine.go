@@ -5,7 +5,7 @@ import (
 )
 
 // Relational algebra redefine.
-func (r *Result) Redefine(oldName, newName string) (self *Result, status int) {
+func (r *Result) Redefine(oldName, newName string) (*Result, int) {
 	_, exists := r.Aliases[oldName]
 	if !exists {
 		return r, st.AliasNotFound
