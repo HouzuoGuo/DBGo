@@ -9,7 +9,7 @@ import (
 )
 
 // Makes a primary key constraint on a column.
-func PK(db *database.Database, t *table.Table, name string) (int) {
+func PK(db *database.Database, t *table.Table, name string) int {
 	beforeTable, status := db.Get("~before")
 	if status != st.OK {
 		return status
@@ -26,7 +26,7 @@ func PK(db *database.Database, t *table.Table, name string) (int) {
 }
 
 // Makes a foreign key constraint on a column, together with delete/update restricted triggers.
-func FK(db *database.Database, fkTable *table.Table, fkColumn string, pkTable *table.Table, pkColumn string) (int) {
+func FK(db *database.Database, fkTable *table.Table, fkColumn string, pkTable *table.Table, pkColumn string) int {
 	beforeTable, status := db.Get("~before")
 	if status != st.OK {
 		return status
@@ -49,7 +49,7 @@ func FK(db *database.Database, fkTable *table.Table, fkColumn string, pkTable *t
 
 // Deletes rows in a table of RA result according to some select conditions.
 // The RA result is made a copy before using select conditions.
-func findAndDelete(t *table.Table, query *ra.Result, conditions ...ra.Condition) (int) {
+func findAndDelete(t *table.Table, query *ra.Result, conditions ...ra.Condition) int {
 	_, status := query.Copy().MultipleSelect(conditions...)
 	if status != st.OK {
 		return status
@@ -64,7 +64,7 @@ func findAndDelete(t *table.Table, query *ra.Result, conditions ...ra.Condition)
 }
 
 // Removes primary key constraint from a column.
-func RemovePK(db *database.Database, t *table.Table, name string) (int) {
+func RemovePK(db *database.Database, t *table.Table, name string) int {
 	beforeTable, status := db.Get("~before")
 	if status != st.OK {
 		return status
@@ -80,7 +80,7 @@ func RemovePK(db *database.Database, t *table.Table, name string) (int) {
 }
 
 // Removes foreign key constraint from a column, together with delete/update restricted triggers.
-func RemoveFK(db *database.Database, fkTable *table.Table, fkColumn string, pkTable *table.Table, pkColumn string) (int) {
+func RemoveFK(db *database.Database, fkTable *table.Table, fkColumn string, pkTable *table.Table, pkColumn string) int {
 	beforeTable, status := db.Get("~before")
 	if status != st.OK {
 		return status

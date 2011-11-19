@@ -9,7 +9,7 @@ import (
 )
 
 // Creates table files.
-func Create(path string, name string) (int) {
+func Create(path string, name string) int {
 	if len(name) > constant.MaxTableNameLength {
 		return st.TableNameTooLong
 	}
@@ -31,7 +31,7 @@ func Create(path string, name string) (int) {
 }
 
 // Renames table files.
-func Rename(path string, oldName string, newName string) (int) {
+func Rename(path string, oldName string, newName string) int {
 	for _, ext := range constant.TableFiles() {
 		err := os.Rename(path+oldName+ext, path+newName+ext)
 		if err != nil {
@@ -48,7 +48,7 @@ func Rename(path string, oldName string, newName string) (int) {
 }
 
 // Deletes table files
-func Delete(path string, name string) (int) {
+func Delete(path string, name string) int {
 	for _, ext := range constant.TableFiles() {
 		err := os.Remove(path + name + ext)
 		if err != nil {

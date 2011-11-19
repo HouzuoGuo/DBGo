@@ -16,7 +16,7 @@ type TriggerFunc interface {
 
 // Returns a map of trigger function names and trigger body structs.
 func TriggerFuncTable() map[string]TriggerFunc {
-	return map[string]TriggerFunc{"PK": PK{}, "FK": FK{}}
+	return map[string]TriggerFunc{"PK": PK{}, "FK": FK{}, "UR": UR{}, "DR": DR{}}
 }
 
 // Executes triggers according to the table operation.

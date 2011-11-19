@@ -40,6 +40,7 @@ func (r *Result) NLJoin(alias string, t2 *table.Table, name string) (*Result, in
 		table.RowNumbers = newRowNumbers
 	}
 	r.Load(t2)
-	r.Tables[t2.Name].RowNumbers = t2RowNumbers
+	t2Table := r.Tables[t2.Name]
+	t2Table.RowNumbers = t2RowNumbers
 	return r, st.OK
 }

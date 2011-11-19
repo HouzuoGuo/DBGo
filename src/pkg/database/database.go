@@ -27,7 +27,7 @@ func Open(path string) (*Database, int) {
 	if err != nil {
 		db = nil
 		logg.Err("database", "Open", err.String())
-		return db, st.CannotOpenDatabaseDirectory 
+		return db, st.CannotOpenDatabaseDirectory
 	}
 	defer directory.Close()
 	fileInfo, err := directory.Readdir(0)
@@ -59,7 +59,7 @@ func Open(path string) (*Database, int) {
 
 // Prepare the database for using table triggers.
 // If override is set to true, remove all existing table triggers and re-create trigger lookup tables.
-func (db *Database) PrepareForTriggers(override bool) (int) {
+func (db *Database) PrepareForTriggers(override bool) int {
 	if override {
 		// Remove all existing table triggers.
 		db.Remove("~before")
@@ -126,7 +126,7 @@ func (db *Database) New(name string) (*table.Table, int) {
 }
 
 // Removes a table.
-func (db *Database) Remove(name string) (int) {
+func (db *Database) Remove(name string) int {
 	_, exists := db.Tables[name]
 	if !exists {
 		return st.TableNotFound
@@ -137,7 +137,7 @@ func (db *Database) Remove(name string) (int) {
 }
 
 // Renames a table
-func (db *Database) Rename(oldName, newName string) (int) {
+func (db *Database) Rename(oldName, newName string) int {
 	_, exists := db.Tables[oldName]
 	if !exists {
 		return st.TableNotFound

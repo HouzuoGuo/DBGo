@@ -38,7 +38,7 @@ func Open(path, name string) (*Table, int) {
 }
 
 // Load the table (column definitions, etc.).
-func (table *Table) Init() (int) {
+func (table *Table) Init() int {
 	// This function may be called multiple times, thus clear previous state.
 	table.RowLength = 0
 	table.Columns = make(map[string]*column.Column)
@@ -77,7 +77,7 @@ func (table *Table) Init() (int) {
 }
 
 // Opens file handles.
-func (table *Table) OpenFiles() (int) {
+func (table *Table) OpenFiles() int {
 	var err os.Error
 	table.DefFile, err = os.OpenFile(table.DefFilePath, os.O_RDWR, constant.DataFilePerm)
 	if err == nil {
@@ -94,7 +94,7 @@ func (table *Table) OpenFiles() (int) {
 }
 
 // Flushes table's files
-func (table *Table) Flush() (int) {
+func (table *Table) Flush() int {
 	err := table.DefFile.Sync()
 	if err == nil {
 		err = table.DataFile.Sync()
@@ -109,7 +109,7 @@ func (table *Table) Flush() (int) {
 }
 
 // Seeks to a row (e.g. row number 10).
-func (table *Table) Seek(rowNumber int) (int) {
+func (table *Table) Seek(rowNumber int) int {
 	var numberOfRows int
 	numberOfRows, status := table.NumberOfRows()
 	if status == st.OK && rowNumber < numberOfRows {
@@ -123,7 +123,7 @@ func (table *Table) Seek(rowNumber int) (int) {
 }
 
 // Seeks to a row and column (e.g. row number 10 column "NAME").
-func (table *Table) SeekColumn(rowNumber int, columnName string) (int) {
+func (table *Table) SeekColumn(rowNumber int, columnName string) int {
 	status := table.Seek(rowNumber)
 	if status == st.OK {
 		column, exists := table.Columns[columnName]
@@ -173,7 +173,7 @@ func (table *Table) Read(rowNumber int) (map[string]string, int) {
 }
 
 // Writes a column value without seeking to a cursor position.
-func (table *Table) Write(column *column.Column, value string) (int) {
+func (table *Table) Write(column *column.Column, value string) int {
 	_, err := table.DataFile.WriteString(util.TrimLength(value, column.Length))
 	if err != nil {
 		return st.CannotWriteTableDataFile
@@ -182,7 +182,7 @@ func (table *Table) Write(column *column.Column, value string) (int) {
 }
 
 // Inserts a row to the bottom of the table.
-func (table *Table) Insert(row map[string]string) (int) {
+func (table *Table) Insert(row map[string]string) int {
 	// Seek to EOF
 	_, err := table.DataFile.Seek(0, 2)
 	if err == nil {
@@ -212,7 +212,7 @@ func (table *Table) Insert(row map[string]string) (int) {
 }
 
 // Deletes a row.
-func (table *Table) Delete(rowNumber int) (int) {
+func (table *Table) Delete(rowNumber int) int {
 	status := table.Seek(rowNumber)
 	if status == st.OK {
 		del, exists := table.Columns["~del"]
@@ -227,7 +227,7 @@ func (table *Table) Delete(rowNumber int) (int) {
 }
 
 // Updates a row.
-func (table *Table) Update(rowNumber int, row map[string]string) (int) {
+func (table *Table) Update(rowNumber int, row map[string]string) int {
 	for columnName, value := range row {
 		column, exists := table.Columns[columnName]
 		if exists {
@@ -254,7 +254,7 @@ func (table *Table) pushNewColumn(name string, length int) *column.Column {
 }
 
 // Adds a new column.
-func (table *Table) Add(name string, length int) (int) {
+func (table *Table) Add(name string, length int) int {
 	_, exists := table.Columns[name]
 	if exists {
 		return st.ColumnAlreadyExists
@@ -291,7 +291,7 @@ func (table *Table) Add(name string, length int) (int) {
 }
 
 // Removes a column.
-func (table *Table) Remove(name string) (int) {
+func (table *Table) Remove(name string) int {
 	var theColumn *column.Column
 	// Find index of the column.
 	var columnIndex int
@@ -324,7 +324,7 @@ func (table *Table) Remove(name string) (int) {
 }
 
 // Rebuild data file, get rid off removed rows, optionally leaves space for a new column.
-func (table *Table) RebuildDataFile(name string, length int) (int) {
+func (table *Table) RebuildDataFile(name string, length int) int {
 	// Create a temporary table named by an accurate timestamp.
 	tempName := strconv.Itoa64(time.Nanoseconds())
 	tablefilemanager.Create(table.Path, tempName)

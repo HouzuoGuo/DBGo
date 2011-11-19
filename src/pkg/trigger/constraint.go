@@ -4,7 +4,6 @@ import (
 	"table"
 	"database"
 	"st"
-	"fmt"
 )
 
 // Look for a value in a table's column, returns true if the value is found. 
@@ -33,7 +32,6 @@ type PK struct {
 func (pk PK) Execute(db *database.Database, t *table.Table, column string, extraParameters []string, row1, row2 map[string]string) int {
 	found, status := find(column, row1[column], t)
 	if found && status == st.OK {
-		fmt.Println("PK returning", found, status)
 		return st.DuplicatedPKValue
 	}
 	return status
@@ -70,7 +68,7 @@ func (dr DR) Execute(db *database.Database, t *table.Table, column string, extra
 	}
 	found, status := find(extraParameters[1], row1[column], fkTable)
 	if !found && status == st.OK {
-		return st.InvalidFKValue
+		return st.DeleteRestricted
 	}
 	return status
 }
@@ -88,7 +86,7 @@ func (ur UR) Execute(db *database.Database, t *table.Table, column string, extra
 	}
 	found, status := find(extraParameters[1], row2[column], fkTable)
 	if !found && status == st.OK {
-		return st.InvalidFKValue
+		return st.UpdateRestricted
 	}
 	return status
 }

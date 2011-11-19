@@ -6,7 +6,7 @@ import (
 )
 
 // Relational algebra select.
-func (r *Result) Select(alias string, filter filter.Filter, parameter interface{}) (*Result,  int) {
+func (r *Result) Select(alias string, filter filter.Filter, parameter interface{}) (*Result, int) {
 	tableName := r.Aliases[alias].TableName
 	columnName := r.Aliases[alias].ColumnName
 	table := r.Tables[tableName].Table

@@ -37,8 +37,8 @@ func New() (r *Result) {
 }
 
 // Returns a copy of the Result. 
-func (r Result) Copy() *Result {
-	return &r
+func (r *Result) Copy() *Result {
+	return &Result{r.Tables, r.Aliases}
 }
 
 // Load all rows of a table into RA result.

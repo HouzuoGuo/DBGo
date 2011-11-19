@@ -1,11 +1,10 @@
-// Insert into... values...
+// INSERT INTO... VALUES...
 package transaction
 
 import (
 	"table"
 	"st"
 	"ra"
-	"fmt"
 	"filter"
 	"trigger"
 )
@@ -20,7 +19,7 @@ func (u *UndoInsert) Undo() int {
 	return u.Table.Delete(u.RowNumber)
 }
 
-func (tr *Transaction) Insert(t *table.Table, row map[string]string) (int) {
+func (tr *Transaction) Insert(t *table.Table, row map[string]string) int {
 	// Execute "before insert" triggers.
 	beforeTable, status := tr.DB.Get("~before")
 	if status != st.OK {
@@ -36,7 +35,6 @@ func (tr *Transaction) Insert(t *table.Table, row map[string]string) (int) {
 		return status
 	}
 	status = trigger.ExecuteTrigger(tr.DB, t, triggerRA, "IN", row, nil)
-	fmt.Println("before trigger returns", status)
 	if status != st.OK {
 		return status
 	}

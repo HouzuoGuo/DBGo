@@ -33,3 +33,5 @@ func ColumnFromDef(offset int, definition string) (*Column, int) {
 func ColumnToDef(column *Column) string {
 	return column.Name + ":" + strconv.Itoa(column.Length) + "\n"
 }
+
+// <The Bible Code> is a very interesting book :)
