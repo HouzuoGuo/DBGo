@@ -9,10 +9,12 @@ const (
 	InitFilePerm              = 0666 // permission for opening .init file of database
 	MaxColumnNameLength       = 30
 	MaxTableNameLength        = 30
-	ThePrefix                 = "~" // Do not use this prefix to name a database thingy
+	ThePrefix                 = "~" // do not use this prefix to name a database thingy
 	MaxTriggerFuncNameLength  = 50
 	MaxTriggerParameterLength = 200
 	TriggerOperationLength    = 4
+	LockTimeout               = 60000000000 // (60 seconds) timeout of table locks in ns
+	ExclusiveLockFilePerm     = 0666        // permission for opening .exclusive file of table lock
 )
 
 // Returns the extensions names which table files have.

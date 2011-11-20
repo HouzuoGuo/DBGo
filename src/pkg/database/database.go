@@ -30,16 +30,16 @@ func Open(path string) (*Database, int) {
 		return db, st.CannotOpenDatabaseDirectory
 	}
 	defer directory.Close()
-	fileInfo, err := directory.Readdir(0)
+	fi, err := directory.Readdir(0)
 	if err != nil {
 		db = nil
 		logg.Err("database", "Open", err.String())
 		return db, st.CannotReadDatabaseDirectory
 	}
-	for _, singleFileInfo := range fileInfo {
+	for _, fileInfo := range fi {
 		// Extract extension of file name.
-		if singleFileInfo.IsRegular() {
-			name, ext := util.FilenameParts(singleFileInfo.Name)
+		if fileInfo.IsRegular() {
+			name, ext := util.FilenameParts(fileInfo.Name)
 			// If extension is .data, open the file as a Table.
 			if ext == "data" {
 				_, exists := db.Tables[name]

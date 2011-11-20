@@ -17,12 +17,14 @@ type Transaction struct {
 	DB     *database.Database
 	Done   []Undoable
 	ID     string
+	id     int64
 	Locked []*table.Table
 }
 
 // Returns a new and ready Transaction.
 func New(db *database.Database) *Transaction {
-	return &Transaction{db, make([]Undoable, 0), strconv.Itoa64(time.Nanoseconds()), make([]*table.Table, 0)}
+	theID := time.Nanoseconds()
+	return &Transaction{db, make([]Undoable, 0), strconv.Itoa64(theID), theID, make([]*table.Table, 0)}
 }
 
 // Logs a table operation.

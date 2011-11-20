@@ -69,8 +69,11 @@ func test() {
 	fmt.Println("------")
 	fmt.Println("X", tr.Insert(t2, map[string]string{"c1": "5", "c3": "dd"}))
 	fmt.Println("X", tr.Delete(t1, 1))
-	fmt.Println("X", tr.Update(t1, 1, map[string]string{"c1":"a"}))
+	fmt.Println("X", tr.Update(t1, 1, map[string]string{"c1": "a"}))
 
+	constraint.RemovePK(db, t1, "c1")
+	constraint.RemoveFK(db, t2, "c1", t1, "c1")
+	fmt.Println(tr.LocksOf(t1))
 }
 
 func main() {
