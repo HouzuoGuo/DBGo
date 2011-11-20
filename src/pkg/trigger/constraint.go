@@ -67,7 +67,7 @@ func (dr DR) Execute(db *database.Database, t *table.Table, column string, extra
 		return status
 	}
 	found, status := find(extraParameters[1], row1[column], fkTable)
-	if !found && status == st.OK {
+	if found && status == st.OK {
 		return st.DeleteRestricted
 	}
 	return status
@@ -85,7 +85,7 @@ func (ur UR) Execute(db *database.Database, t *table.Table, column string, extra
 		return status
 	}
 	found, status := find(extraParameters[1], row2[column], fkTable)
-	if !found && status == st.OK {
+	if found && status == st.OK {
 		return st.UpdateRestricted
 	}
 	return status

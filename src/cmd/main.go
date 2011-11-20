@@ -32,9 +32,12 @@ func testRA() {
 
 	r := ra.New()
 	r.Load(t1)
+	r.Report()
+	r2 := r.Copy()
 	r.MultipleSelect(ra.Condition{Alias: "c1", Filter: filter.Gt{}, Parameter: 3},
 		ra.Condition{Alias: "c1", Filter: filter.Lt{}, Parameter: 5})
 	r.Report()
+	r2.Report()
 }
 
 func test() {
@@ -60,17 +63,17 @@ func test() {
 	fmt.Println("Inserting into t2-------------------------------------")
 
 	fmt.Println(tr.Insert(t2, map[string]string{"c1": "1", "c3": "aa"}))
-
 	fmt.Println(tr.Insert(t2, map[string]string{"c1": "2", "c3": "bb"}))
 	fmt.Println(tr.Insert(t2, map[string]string{"c1": "3", "c3": "cc"}))
 	fmt.Println(tr.Insert(t2, map[string]string{"c1": "4", "c3": "dd"}))
 	fmt.Println("------")
 	fmt.Println("X", tr.Insert(t2, map[string]string{"c1": "5", "c3": "dd"}))
 	fmt.Println("X", tr.Delete(t1, 1))
+	fmt.Println("X", tr.Update(t1, 1, map[string]string{"c1":"a"}))
 
 }
 
 func main() {
-	testRA()
-	//test()
+	//testRA()
+	test()
 }

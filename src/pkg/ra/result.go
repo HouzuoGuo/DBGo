@@ -38,7 +38,24 @@ func New() (r *Result) {
 
 // Returns a copy of the Result. 
 func (r *Result) Copy() *Result {
-	return &Result{r.Tables, r.Aliases}
+	aCopy := New()
+	for str, tableResult := range r.Tables {
+		trCopy := new(TableResult)
+		trCopy.RowNumbers = make([]int, len(tableResult.RowNumbers))
+		for i, r := range tableResult.RowNumbers {
+			trCopy.RowNumbers[i] = r
+		}
+		trCopy.Table = tableResult.Table
+		aCopy.Tables[str] = trCopy
+
+	}
+	for str, tableColumn := range r.Aliases {
+		tcCopy := new(TableColumn)
+		tcCopy.ColumnName = tableColumn.ColumnName
+		tcCopy.TableName = tableColumn.TableName
+		aCopy.Aliases[str] = tcCopy
+	}
+	return aCopy
 }
 
 // Load all rows of a table into RA result.
@@ -80,8 +97,7 @@ func (r *Result) Report() {
 
 // Reads a row and return a map representation (name1:value1, name2:value2...)
 func (r *Result) Read(rowNumber int) (map[string]string, int) {
-	var row map[string]string
-	row = make(map[string]string)
+	row := make(map[string]string)
 	for _, column := range r.Aliases {
 		columnName := column.ColumnName
 		table := r.Tables[column.TableName]
