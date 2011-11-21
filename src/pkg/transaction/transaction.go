@@ -6,6 +6,7 @@ import (
 	"database"
 	"time"
 	"strconv"
+	"st"
 )
 
 // An undoable operation such as insert, update and delete.
@@ -30,4 +31,12 @@ func New(db *database.Database) *Transaction {
 // Logs a table operation.
 func (tr *Transaction) Log(undoable Undoable) {
 	tr.Done = append(tr.Done[:], undoable)
+}
+
+func (tr *Transaction) Commit() int {
+	return st.OK
+}
+
+func (tr *Transaction) Rollback() int {
+	return st.OK
 }

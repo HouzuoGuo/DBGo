@@ -38,4 +38,5 @@ const (
 	CannotReadExclusiveLocksFile = 132
 	CannotUnlockSharedLock       = 133
 	CannotUnlockExclusiveLock    = 134
+	CannotCreateFile             = 135
 )

@@ -71,8 +71,18 @@ func test() {
 	fmt.Println("X", tr.Delete(t1, 1))
 	fmt.Println("X", tr.Update(t1, 1, map[string]string{"c1": "a"}))
 
-	constraint.RemovePK(db, t1, "c1")
-	constraint.RemoveFK(db, t2, "c1", t1, "c1")
+	fmt.Println(constraint.RemovePK(db, t1, "c1"))
+	fmt.Println(constraint.RemoveFK(db, t2, "c1", t1, "c1"))
+
+	fmt.Println("E lock", tr.ELock(t1))
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("E -> S lock", tr.SLock(t1))
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("Unlock S lock", tr.Unlock(t1))
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("E lock", tr.ELock(t1))
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("Unlock E lock", tr.Unlock(t1))
 	fmt.Println(tr.LocksOf(t1))
 }
 
