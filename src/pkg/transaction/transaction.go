@@ -16,9 +16,9 @@ type Undoable interface {
 
 type Transaction struct {
 	DB     *database.Database
-	Done   []Undoable
-	ID     string
-	id     int64
+	Done   []Undoable // completed table operations (insert, update, delete)
+	ID     string     // transaction ID as string
+	id     int64      // identical to ID, but in int type
 	Locked []*table.Table
 }
 
@@ -33,10 +33,38 @@ func (tr *Transaction) Log(undoable Undoable) {
 	tr.Done = append(tr.Done[:], undoable)
 }
 
+// Commits the transaction and release locked tables.
 func (tr *Transaction) Commit() int {
-	return st.OK
+	status := int(st.OK)
+	for _, table := range tr.Locked {
+		status = table.Flush()
+		if status != st.OK {
+			return status
+		}
+		status = tr.Unlock(table)
+		if status != st.OK {
+			return status
+		}
+	}
+	tr.Locked = make([]*table.Table, 0)
+	tr.Done = make([]Undoable, 0)
+	return status
 }
 
+// Rolls back transaction and release locked tables.
 func (tr *Transaction) Rollback() int {
-	return st.OK
+	status := int(st.OK)
+	for i := len(tr.Done) - 1; i >= 0; i-- {
+		status = tr.Done[i].Undo()
+		if status != st.OK {
+			break
+		}
+	}
+	// Error happening during undo may be more serious than failure of releasing locks.
+	if status == st.OK {
+		status = tr.Commit()
+	} else {
+		tr.Commit()
+	}
+	return status
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"database"
 	"transaction"
 	"constraint"
@@ -40,7 +41,7 @@ func testRA() {
 	r2.Report()
 }
 
-func test() {
+func testTR() {
 	db, err := database.Open("/home/houzuo/temp_db/")
 	fmt.Println("Open database?", err)
 	t1, _ := db.New("t1")
@@ -86,7 +87,37 @@ func test() {
 	fmt.Println(tr.LocksOf(t1))
 }
 
+func testCR() {
+	db, err := database.Open("/home/houzuo/temp_db/")
+	fmt.Println("Open database?", err)
+	t1, _ := db.New("t1")
+	tr := transaction.New(db)
+	fmt.Println(t1.Add("c1", 5))
+	fmt.Println(t1.Add("c2", 5))
+	tr.ELock(t1)
+	fmt.Println(tr.Insert(t1, map[string]string{"c1": "1", "c2": "a"}))
+	fmt.Println(tr.Insert(t1, map[string]string{"c1": "2", "c2": "b"}))
+	fmt.Println(tr.Insert(t1, map[string]string{"c1": "3", "c2": "c"}))
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("commited", tr.Commit())
+	fmt.Println(tr.LocksOf(t1))
+
+	tr.ELock(t1)
+	fmt.Println(tr.Insert(t1, map[string]string{"c1": "4", "c2": "d"}))
+	fmt.Println(tr.Update(t1, 0, map[string]string{"c1": "ha!", "c2": "eee"}))
+	fmt.Println(tr.Delete(t1, 1))
+
+	t1.Flush()
+	time.Sleep(5000000000)
+
+	fmt.Println(tr.LocksOf(t1))
+	fmt.Println("rolling", tr.Rollback())
+	fmt.Println(tr.LocksOf(t1))
+}
+
 func main() {
 	//testRA()
-	test()
+	//testTR()
+	testCR()
+	fmt.Println("hi")
 }
