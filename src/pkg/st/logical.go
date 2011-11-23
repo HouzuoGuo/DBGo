@@ -1,4 +1,5 @@
-// Database logical error.
+// Logical errors.
+// Data is ensured to be safe and consistent when these codes are raised.
 
 package st
 
@@ -9,4 +10,5 @@ const (
 	UpdateRestricted      = 304
 	CannotLockInExclusive = 305
 	CannotLockInShared    = 306
+	DuplicatedAlias       = 307
 )

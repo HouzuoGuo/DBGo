@@ -2,7 +2,6 @@ package ra
 
 import (
 	"st"
-	"logg"
 )
 
 // Relational algebra project.
@@ -10,7 +9,6 @@ func (r *Result) Project(aliases ...string) (*Result, int) {
 	for presentAlias, _ := range r.Aliases {
 		found := false
 		tableName := r.Aliases[presentAlias].TableName
-		logg.Debug("Table name is", tableName, "")
 		for _, alias := range aliases {
 			if alias == presentAlias {
 				found = true

@@ -19,7 +19,7 @@ type Locks struct {
 }
 
 // Returns existing shared and exclusive locks of a table.
-func (tr *Transaction) LocksOf(t *table.Table) (*Locks, int) {
+func LocksOf(t *table.Table) (*Locks, int) {
 	// Read files in .shared directory.
 	sharedLocksPath := t.Path + t.Name + ".shared"
 	sharedLocksDir, err := os.Open(sharedLocksPath)
@@ -40,8 +40,8 @@ func (tr *Transaction) LocksOf(t *table.Table) (*Locks, int) {
 		if err != nil || theID > time.Nanoseconds()+constant.LockTimeout {
 			// Remove expired shared lock.
 			err = os.Remove(sharedLocksPath + "/" + fileInfo.Name)
-			logg.Warn("transaction", "LocksOf", "Expired shared lock ID"+
-				fileInfo.Name+" file "+sharedLocksPath+"/"+fileInfo.Name+"is removed")
+			logg.Warn("transaction", "LocksOf", "Expired shared lock ID "+
+				fileInfo.Name+" file "+sharedLocksPath+"/"+fileInfo.Name+" is removed")
 			if err != nil {
 				logg.Err("transaction", "LocksOf", err)
 				return nil, st.CannotUnlockSharedLock
@@ -73,7 +73,7 @@ func (tr *Transaction) LocksOf(t *table.Table) (*Locks, int) {
 		// Remove expired exclusive lock.
 		err = os.Remove(exclusiveLockPath)
 		logg.Debug("transaction", "LocksOf", err)
-		logg.Warn("transaction", "LocksOf", "Expired exclusive lock ID"+
+		logg.Warn("transaction", "LocksOf", "Expired exclusive lock ID "+
 			string(buffer)+" file "+exclusiveLockPath+" is removed")
 		if err != nil {
 			logg.Err("transaction", "LocksOf", err)
@@ -87,7 +87,7 @@ func (tr *Transaction) LocksOf(t *table.Table) (*Locks, int) {
 
 // Locks a table in exclusive mode.
 func (tr *Transaction) ELock(t *table.Table) int {
-	existingLocks, status := tr.LocksOf(t)
+	existingLocks, status := LocksOf(t)
 	if status != st.OK {
 		return status
 	}
@@ -99,7 +99,7 @@ func (tr *Transaction) ELock(t *table.Table) int {
 	}
 	// Release previously acquired shared lock, if any. 
 	if len(existingLocks.Shared) == 1 && existingLocks.Shared[0] == tr.id {
-		status = tr.Unlock(t)
+		status = tr.unlock(t)
 		if status != st.OK {
 			return status
 		}
@@ -114,7 +114,7 @@ func (tr *Transaction) ELock(t *table.Table) int {
 }
 
 func (tr *Transaction) SLock(t *table.Table) int {
-	existingLocks, status := tr.LocksOf(t)
+	existingLocks, status := LocksOf(t)
 	if status != st.OK {
 		return status
 	}
@@ -124,18 +124,23 @@ func (tr *Transaction) SLock(t *table.Table) int {
 	}
 	// Release previously acquired exclusive lock, if any.
 	if existingLocks.Exclusive == tr.id {
-		status = tr.Unlock(t)
+		status = tr.unlock(t)
 		if status != st.OK {
 			return status
 		}
 	}
 	// Create shared lock file.
 	status = util.CreateAndWrite(t.Path+t.Name+".shared/"+tr.ID, "")
+	if status != st.OK {
+		return status
+	}
+	tr.Locked = append(tr.Locked[:], t)
 	return st.OK
 }
 
-func (tr *Transaction) Unlock(t *table.Table) int {
-	existingLocks, status := tr.LocksOf(t)
+// Releases locks acquired by this transaction on the table.
+func (tr *Transaction) unlock(t *table.Table) int {
+	existingLocks, status := LocksOf(t)
 	if status != st.OK {
 		return status
 	}
@@ -154,6 +159,17 @@ func (tr *Transaction) Unlock(t *table.Table) int {
 			if err != nil {
 				return st.CannotUnlockSharedLock
 			}
+		}
+	}
+	return st.OK
+}
+
+// Attempts to lock all tables in the database exclusively.
+func (tr *Transaction) LockAll() int {
+	for _, table := range tr.DB.Tables {
+		status := tr.ELock(table)
+		if status != st.OK {
+			return status
 		}
 	}
 	return st.OK

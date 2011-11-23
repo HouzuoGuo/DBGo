@@ -318,8 +318,13 @@ func (table *Table) Remove(name string) int {
 		// Rebuild data file if there are already rows in the table.
 		// (To remove data in the deleted column)
 		status = table.RebuildDataFile("", 0)
+	} else {
+		status = util.RemoveLine(table.DefFilePath, column.ColumnToDef(theColumn))
 	}
 	table.RowLength -= length
+	if status != st.OK {
+		return status
+	}
 	return st.OK
 }
 
@@ -388,4 +393,27 @@ func (table *Table) RebuildDataFile(name string, length int) int {
 		}
 	}
 	return st.OK
+}
+
+// Returns an array of all rows, not including deleted rows.
+func (table *Table) SelectAll() ([]map[string]string, int) {
+	numberOfRows, status := table.NumberOfRows()
+	if status != st.OK {
+		return nil, status
+	}
+	var everFailed bool
+	rows := make([]map[string]string, numberOfRows)
+	for i := 0; i < numberOfRows; i++ {
+		row, status := table.Read(i)
+		if status != st.OK {
+			everFailed = true
+		}
+		if row["~del"] != "y" {
+			rows[i] = row
+		}
+	}
+	if everFailed {
+		return rows, st.FailedToReadCertainRows
+	}
+	return rows, st.OK
 }

@@ -62,8 +62,8 @@ func Open(path string) (*Database, int) {
 func (db *Database) PrepareForTriggers(override bool) int {
 	if override {
 		// Remove all existing table triggers.
-		db.Remove("~before")
-		db.Remove("~after")
+		db.Drop("~before")
+		db.Drop("~after")
 	} else {
 		// If .init file exists, no need to redo the process.
 		_, err := os.Open(db.Path + ".init")
@@ -77,11 +77,11 @@ func (db *Database) PrepareForTriggers(override bool) int {
 		return st.CannotCreateInitFile
 	}
 	// Create ~before ("before" triggers) and ~after ("after" triggers) tables.
-	beforeTable, status := db.New("~before")
+	beforeTable, status := db.Create("~before")
 	if status != st.OK {
 		return status
 	}
-	afterTable, status := db.New("~after")
+	afterTable, status := db.Create("~after")
 	if status != st.OK {
 		return status
 	}
@@ -98,7 +98,7 @@ func (db *Database) PrepareForTriggers(override bool) int {
 }
 
 // Creates a new table.
-func (db *Database) New(name string) (*table.Table, int) {
+func (db *Database) Create(name string) (*table.Table, int) {
 	var newTable *table.Table
 	_, exists := db.Tables[name]
 	if exists {
@@ -125,8 +125,8 @@ func (db *Database) New(name string) (*table.Table, int) {
 	return newTable, st.OK
 }
 
-// Removes a table.
-func (db *Database) Remove(name string) int {
+// Drops a table.
+func (db *Database) Drop(name string) int {
 	_, exists := db.Tables[name]
 	if !exists {
 		return st.TableNotFound
@@ -164,4 +164,11 @@ func (db *Database) Get(name string) (*table.Table, int) {
 		return nil, st.TableNotFound
 	}
 	return table, st.OK
+}
+
+// Flushes all tables.
+func (db *Database) Close() {
+	for _, t := range db.Tables {
+		t.Flush()
+	}
 }

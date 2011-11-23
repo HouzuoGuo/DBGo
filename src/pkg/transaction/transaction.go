@@ -41,7 +41,7 @@ func (tr *Transaction) Commit() int {
 		if status != st.OK {
 			return status
 		}
-		status = tr.Unlock(table)
+		status = tr.unlock(table)
 		if status != st.OK {
 			return status
 		}

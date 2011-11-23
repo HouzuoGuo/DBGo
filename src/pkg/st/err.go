@@ -1,4 +1,6 @@
 // Error codes.
+// Some of these codes may indicate data loss or file system issues.
+// These error codes will immediately halt the function when they happen.
 
 package st
 
@@ -39,4 +41,6 @@ const (
 	CannotUnlockSharedLock       = 133
 	CannotUnlockExclusiveLock    = 134
 	CannotCreateFile             = 135
+	CannotReadFile               = 136
+	CannotWriteFile              = 137
 )

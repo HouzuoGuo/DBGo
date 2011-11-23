@@ -1,7 +1,5 @@
-// Info codes.
-
 package st
 
 const (
-	OK = 0 // Do not change :)
+	OK = 0 // do not change :)
 )

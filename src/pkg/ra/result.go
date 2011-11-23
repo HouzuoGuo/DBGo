@@ -118,3 +118,13 @@ func (r *Result) NumberOfRows() int {
 	}
 	return 0
 }
+
+// Returns TableResult of the specified table name.
+func (r *Result) Table(name string) (*TableResult, int) {
+	t, exists := r.Tables[name]
+	if !exists {
+		return nil, st.TableNotFound
+	}
+	return t, st.OK
+
+}
