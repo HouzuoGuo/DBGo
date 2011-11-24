@@ -171,6 +171,7 @@ func (db *Database) Rename(oldName, newName string) int {
 	if exists {
 		return st.TableAlreadyExists
 	}
+	db.Tables[oldName].Flush()
 	// Rename table files and directories
 	status := tablefilemanager.Rename(db.Path, oldName, newName)
 	if status != st.OK {
@@ -178,7 +179,8 @@ func (db *Database) Rename(oldName, newName string) int {
 	}
 	db.Tables[newName] = db.Tables[oldName]
 	db.Tables[oldName] = nil, true
-	return st.OK
+	// Filenames have been changed, thus re-open file handles.
+	return db.Tables[newName].OpenFiles()
 }
 
 // Returns a Table by name.
@@ -193,6 +195,7 @@ func (db *Database) Get(name string) (*table.Table, int) {
 
 // Flushes all tables.
 func (db *Database) Flush() {
+	logg.Debug(db.Tables, "", "")
 	for _, t := range db.Tables {
 		t.Flush()
 	}

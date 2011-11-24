@@ -63,4 +63,5 @@ const (
 	CannotCreateFile             = 135
 	CannotReadFile               = 136
 	CannotWriteFile              = 137
+	CannotRemoveSpecialColumn    = 138
 )

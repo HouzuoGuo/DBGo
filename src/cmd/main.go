@@ -72,7 +72,7 @@ func Eg1() {
 	// Drop table "tnoexist", there should be an error (table not found) .
 	status = db.Drop("tnoexist")
 	fmt.Println("Drop tnoexist (error)", status)
-
+	
 	// Flush disk buffer.
 	db.Flush()
 }

@@ -1,4 +1,48 @@
-// Table logics, add/delete/update rows, add/remove columns, etc.
+/*
+<DBGo - A flat-file relational database engine implementation in Go programming language>
+Copyright (C) <2011>  <Houzuo (Howard) Guo>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+DBGo table has:
+tableName.data - table data, formatted like a spreadsheet, e.g.
+
+yJOSHUA              FB                  CGG                                     
+ NIKKI               MYB                 NH                                      
+ BUZZ                TWITTER             BUZZ01                                  
+ CHRISTINA           FACEBOOK            CG                                      
+ CHRISTINA           SKYPE               JAMD
+ 
+tableName.def - column definitions, e.g.
+
+~del:1
+NAME:20
+SITE:20
+USERNAME:40
+
+Note that ~del is a special column, if ~del is set to "y", it means the row is deleted.
+
+tableName.exclusive - when the table is exclusively locked by a transaction, the 
+file is created and the content of the file is the ID of the transaction.
+
+tableName.shared (directory) - when the table is locked by a transaction in shared mode, 
+a file is created, the file name is the ID of the transaction.
+
+This package handles basic, low-level table logics. 
+*/
 
 package table
 
@@ -16,10 +60,12 @@ import (
 )
 
 type Table struct {
+	// Path is the table's database's path, must end with /
 	Path, Name, DefFilePath, DataFilePath string
 	DefFile, DataFile                     *os.File
 	Columns                               map[string]*column.Column
 	RowLength                             int
+	// sequence of columns
 	ColumnsInOrder                        []*column.Column
 }
 
@@ -57,12 +103,12 @@ func (table *Table) Init() int {
 	// Read definition file into memeory.
 	content := make([]byte, defFileInfo.Size)
 	table.DefFile.Read(content)
-	// Each line contains one column definition
+	// Each line contains one column definition.
 	lines := strings.Split(string(content), "\n")
 	for _, line := range lines {
 		if line != "" {
 			var aColumn *column.Column
-			// Convert the definition into a Column
+			// Convert the definition into a Column.
 			aColumn, status = column.ColumnFromDef(table.RowLength, line)
 			if status != st.OK {
 				return status
@@ -245,7 +291,7 @@ func (table *Table) Update(rowNumber int, row map[string]string) int {
 	return st.OK
 }
 
-// Puts a new column in the Table struct.
+// Puts a new column.
 func (table *Table) pushNewColumn(name string, length int) *column.Column {
 	newColumn := &column.Column{Name: name, Offset: table.RowLength - 1, Length: length}
 	table.ColumnsInOrder = append(table.ColumnsInOrder[:], newColumn)
@@ -305,7 +351,10 @@ func (table *Table) Remove(name string) int {
 	if theColumn == nil {
 		return st.ColumnNameNotFound
 	}
-	name, length := theColumn.Name, theColumn.Length
+	if strings.HasPrefix(name, "~") {
+		return st.CannotRemoveSpecialColumn
+	}
+	length := theColumn.Length
 	// Remove the column from columns array.
 	table.ColumnsInOrder = append(table.ColumnsInOrder[:columnIndex], table.ColumnsInOrder[columnIndex+1:]...)
 	// Remove the column from columns map.
