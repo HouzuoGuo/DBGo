@@ -3,7 +3,7 @@ package ra
 import (
 	"table"
 	"st"
-	"fmt"
+	//"fmt"
 )
 
 // Relational algebra join using nested loops.
@@ -40,7 +40,6 @@ func (r *Result) NLJoin(alias string, t2 *table.Table, name string) (*Result, in
 			newRowNumbers[i] = t1RowNumbers[keep]
 		}
 		table.RowNumbers = newRowNumbers
-		fmt.Println(table.Table.Name, newRowNumbers)
 	}
 	r.Load(t2)
 	t2Table := r.Tables[t2.Name]

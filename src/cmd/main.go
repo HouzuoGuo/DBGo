@@ -413,39 +413,34 @@ func Eg8() {
 	tr.ELock(CONTACT)
 
 	query := ra.New()
-	query.Load(PERSON)
-	query.NLJoin("NAME", CONTACT, "NAME")
-	query.Report()
-	/*
-		query.Select("AGE", filter.Gt{}, 18)
-		query.Project("SITE", "USERNAME")
-		query.Report()
-		contactResult, _ := query.Table("CONTACT")
-		fmt.Println(contactResult)
-		for _, i := range contactResult.RowNumbers {
-			tr.Delete(CONTACT, i)
-		}
+	query.Load(CONTACT)
+	query.NLJoin("NAME", PERSON, "NAME")
+	query.Select("AGE", filter.Gt{}, 18)
+	query.Project("SITE", "USERNAME")
+	contactResult, _ := query.Table("CONTACT")
+	fmt.Println(contactResult)
+	for _, i := range contactResult.RowNumbers {
+		tr.Delete(CONTACT, i)
+	}
 
+	rows, _ := CONTACT.SelectAll()
+	for _, row := range rows {
+		fmt.Println(row)
+	}
 
-		rows, _ := CONTACT.SelectAll()
-		for _, row := range rows {
-			fmt.Println(row)
-		}
+	query2 := ra.New()
+	query2.Load(CONTACT)
+	query2.Select("SITE", filter.Eq{}, "FACEBOOK")
+	contactResult, _ = query.Table("CONTACT")
+	for _, i := range contactResult.RowNumbers {
+		tr.Update(CONTACT, i, map[string]string{"SITE": "FB"})
+	}
+	tr.Commit()
 
-		query2 := ra.New()
-		query2.Load(CONTACT)
-		query2.Select("SITE", filter.Eq{}, "FACEBOOK")
-		contactResult, _ = query.Table("CONTACT")
-		for _, i := range contactResult.RowNumbers {
-			tr.Update(CONTACT, i, map[string]string{"SITE":"FB"})
-		}
-		tr.Commit()
-
-		rows, _ = CONTACT.SelectAll()
-		for _, row := range rows {
-			fmt.Println(row)
-		}
-	*/
+	rows, _ = CONTACT.SelectAll()
+	for _, row := range rows {
+		fmt.Println(row)
+	}
 }
 
 func main() {
