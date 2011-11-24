@@ -33,8 +33,6 @@ func (r *Result) NLJoin(alias string, t2 *table.Table, name string) (*Result, in
 		}
 	}
 
-	fmt.Println(t1RowNumbers)
-	fmt.Println(t2RowNumbers)
 	// Correct the order of row numbers of other tables in RA result.
 	for _, table := range r.Tables {
 		newRowNumbers := make([]int, len(t1RowNumbers))
