@@ -1,4 +1,22 @@
-// Relational algebra results.
+/*
+<DBGo - A flat-file relational database engine implementation in Go programming language>
+Copyright (C) <2011>  <Houzuo (Howard) Guo>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* Storing relational algebra results. */
 
 package ra
 
@@ -39,6 +57,7 @@ func New() (r *Result) {
 // Returns a copy of the Result. 
 func (r *Result) Copy() *Result {
 	aCopy := New()
+	// Copy row numbers and tables.
 	for str, tableResult := range r.Tables {
 		trCopy := new(TableResult)
 		trCopy.RowNumbers = make([]int, len(tableResult.RowNumbers))
@@ -49,6 +68,7 @@ func (r *Result) Copy() *Result {
 		aCopy.Tables[str] = trCopy
 
 	}
+	// Copy column names and aliases.
 	for str, tableColumn := range r.Aliases {
 		tcCopy := new(TableColumn)
 		tcCopy.ColumnName = tableColumn.ColumnName
@@ -77,6 +97,10 @@ func (r *Result) Load(t *table.Table) (*Result, int) {
 	// Load columns of the table.
 	for columnName, _ := range t.Columns {
 		if !strings.HasPrefix(columnName, constant.ThePrefix) {
+			_, exists := r.Aliases[columnName]
+			if exists {
+				logg.Warn("ra", "Load", "Column name "+columnName+" duplicates an existing alias")
+			}
 			r.Aliases[columnName] = &TableColumn{t.Name, columnName}
 		}
 	}
@@ -126,5 +150,4 @@ func (r *Result) Table(name string) (*TableResult, int) {
 		return nil, st.TableNotFound
 	}
 	return t, st.OK
-
 }

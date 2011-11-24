@@ -1,4 +1,22 @@
-// Useful constants for the database to run.
+/*
+<DBGo - A flat-file relational database engine implementation in Go programming language>
+Copyright (C) <2011>  <Houzuo (Howard) Guo>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* Constants which will affect DBGo runtime databases. */
 
 package constant
 
@@ -13,16 +31,16 @@ const (
 	MaxTriggerFuncNameLength  = 50
 	MaxTriggerParameterLength = 200
 	TriggerOperationLength    = 4
-	LockTimeout               = 60000000000 // (60 seconds) timeout of table locks in ns
+	LockTimeout               = 60000000000 // (60 seconds) timeout of table locks (shared & exclusive) in nanoseconds
 	ExclusiveLockFilePerm     = 0666        // permission for opening .exclusive file of table lock
 )
 
-// Returns the extensions names which table files have.
+// Returns the extension names which table files have.
 func TableFiles() []string {
 	return []string{".data", ".def"}
 }
 
-// Returns the column names and lengths which a new table must have. 
+// Returns the column names and lengths which a new table have. 
 func DatabaseColumns() map[string]int {
 	return map[string]int{ThePrefix + "del": 1}
 }

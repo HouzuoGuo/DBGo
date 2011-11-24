@@ -1,3 +1,21 @@
+/*
+<DBGo - A flat-file relational database engine implementation in Go programming language>
+Copyright (C) <2011>  <Houzuo (Howard) Guo>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package main
 
 import (
@@ -21,7 +39,7 @@ func cleanUp() {
 	os.MkdirAll(DBPath, 0777)
 }
 
-// Open/close database, create/rename/delete tables.
+// Open/flush database, create/rename/delete tables.
 func Eg1() {
 	db, status := database.Open(DBPath)
 	// Status 0 means no error has occured.
@@ -54,6 +72,9 @@ func Eg1() {
 	// Drop table "tnoexist", there should be an error (table not found) .
 	status = db.Drop("tnoexist")
 	fmt.Println("Drop tnoexist (error)", status)
+
+	// Flush disk buffer.
+	db.Flush()
 }
 
 // Add/delete columns.
@@ -256,20 +277,24 @@ func Eg6() {
 
 	// Insert two records to CONTACT, the second record does not correspond to a NAME in PERSON which will return an error.
 	fmt.Println("Insert 1", tr.Insert(CONTACT, map[string]string{"SITE": "Twitter", "USERNAME": "buzz", "NAME": "Buzz"}))
-	fmt.Println("Insert 1", tr.Insert(CONTACT, map[string]string{"SITE": "FB", "USERNAME": "CG", "NAME": "Christina"}))
+	fmt.Println("Insert 2 (error)", tr.Insert(CONTACT, map[string]string{"SITE": "FB", "USERNAME": "CG", "NAME": "Christina"}))
 
 	// Update "Buzz" in PERSON will trigger update-restricted and will return an error.
-	fmt.Println("Update 1", tr.Update(PERSON, 0, map[string]string{"NAME": "BuzzM"}))
+	fmt.Println("Update 1 (error)", tr.Update(PERSON, 0, map[string]string{"NAME": "BuzzM"}))
 
 	// Update "Nikki" in PERSON will trigger update-restricted but will not return an error.
 	fmt.Println("Update 1", tr.Update(PERSON, 1, map[string]string{"NAME": "NikkiH"}))
 
 	// Delete "Buzz" in PERSON will trigger delete-restricted and will return an error.
-	fmt.Println("Delete 1", tr.Delete(PERSON, 0))
+	fmt.Println("Delete 1 (error)", tr.Delete(PERSON, 0))
 
 	// Delete "NikkiH" in PERSON will trigger delete-restricted but will not return an error.
-	fmt.Println("Delete 1", tr.Delete(PERSON, 1))
+	fmt.Println("Delete 2", tr.Delete(PERSON, 1))
 	fmt.Println("Commit", tr.Commit())
+
+	// Remove the PK and FK constraints.
+	fmt.Println("Remove PK constraint", constraint.RemovePK(db, PERSON, "NAME"))
+	fmt.Println("Remove FK constraint", constraint.RemoveFK(db, CONTACT, "NAME", PERSON, "NAME"))
 }
 
 // Handle query.
@@ -301,7 +326,7 @@ func Eg7() {
 		SELECT SITE, USERNAME
 		FROM CONTACT, PERSON
 		WHERE PERSON.NAME = CONTACT.NAME
-		AND PEOPLE.AGE > 17;
+		AND PERSON.AGE > 17;
 
 		-- NOTE THAT THE FOLLOWING 'TRANSLATION' DOES NOT CHECK FOR ERRORS.
 	*/
@@ -324,8 +349,8 @@ func Eg7() {
 
 	tr.Insert(CONTACT, map[string]string{"NAME": "BUZZ", "SITE": "TWITTER", "USERNAME": "BUZZ01"})
 	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "FACEBOOK", "USERNAME": "CG"})
-	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "SKYPE", "USERNAME": "JAMD"})
-	tr.Insert(CONTACT, map[string]string{"NAME": "JOSHUA", "SITE": "TWITTER", "USERNAME": "CGG"})
+	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "SKYPE", "USERNAME": "CGG"})
+	tr.Insert(CONTACT, map[string]string{"NAME": "JOSHUA", "SITE": "TWITTER", "USERNAME": "JAMD"})
 	tr.Insert(CONTACT, map[string]string{"NAME": "NIKKI", "SITE": "MYB", "USERNAME": "NH"})
 	tr.Commit()
 
@@ -413,12 +438,11 @@ func Eg8() {
 	tr.ELock(CONTACT)
 
 	query := ra.New()
-	query.Load(CONTACT)
-	query.NLJoin("NAME", PERSON, "NAME")
+	query.Load(PERSON)
+	query.NLJoin("NAME", CONTACT, "NAME")
 	query.Select("AGE", filter.Gt{}, 18)
 	query.Project("SITE", "USERNAME")
 	contactResult, _ := query.Table("CONTACT")
-	fmt.Println(contactResult)
 	for _, i := range contactResult.RowNumbers {
 		tr.Delete(CONTACT, i)
 	}
@@ -444,30 +468,27 @@ func Eg8() {
 }
 
 func main() {
-	/*
-		cleanUp()
-		fmt.Println("\n\n\t\tC:")
-
-		Eg1()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C:")
-		Eg2()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C: C:")
-		Eg3()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C: C: C:")
-		Eg4()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C: C: C: C:")
-		Eg5()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C: C: C: C: C:")
-		Eg6()
-		cleanUp()
-		fmt.Println("\n\n\t\tC: C: C: C: C: C: C:")
-		Eg7()
-	*/
+	cleanUp()
+	fmt.Println("\n\n\t\tC:")
+	Eg1()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C:")
+	Eg2()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C: C:")
+	Eg3()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C: C: C:")
+	Eg4()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C: C: C: C:")
+	Eg5()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C: C: C: C: C:")
+	Eg6()
+	cleanUp()
+	fmt.Println("\n\n\t\tC: C: C: C: C: C: C:")
+	Eg7()
 	cleanUp()
 	fmt.Println("\n\n\t\tC: C: C: C: C: C: C: C:")
 	Eg8()

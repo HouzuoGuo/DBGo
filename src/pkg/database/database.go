@@ -1,4 +1,28 @@
-// Database logics, create/rename/remove tables, etc.
+/*
+<DBGo - A flat-file relational database engine implementation in Go programming language>
+Copyright (C) <2011>  <Houzuo (Howard) Guo>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+Database logics.
+
+DBGo database is stored in a directory. DBGo data files do not use very special extension names,
+thus it is better to give a DBGo database an empty directory to begin with, and better not to 
+store any other user files in the directory.
+*/
 
 package database
 
@@ -13,7 +37,7 @@ import (
 )
 
 type Database struct {
-	Path   string
+	Path   string // path to database directory, must end with slash /
 	Tables map[string]*table.Table
 }
 
@@ -45,6 +69,7 @@ func Open(path string) (*Database, int) {
 				_, exists := db.Tables[name]
 				if !exists {
 					var status int
+					// Open the table and put it into tables map.
 					db.Tables[name], status = table.Open(path, name)
 					if status != st.OK {
 						return nil, status
@@ -58,7 +83,7 @@ func Open(path string) (*Database, int) {
 }
 
 // Prepare the database for using table triggers.
-// If override is set to true, remove all existing table triggers and re-create trigger lookup tables.
+// If override is set to true, it will remove all existing table triggers and re-create trigger lookup tables.
 func (db *Database) PrepareForTriggers(override bool) int {
 	if override {
 		// Remove all existing table triggers.
@@ -107,7 +132,7 @@ func (db *Database) Create(name string) (*table.Table, int) {
 	if len(name) > constant.MaxTableNameLength {
 		return nil, st.TableNameTooLong
 	}
-	// Create files and directories.
+	// Create table files and directories.
 	tablefilemanager.Create(db.Path, name)
 	// Open the table
 	var status int
@@ -167,7 +192,7 @@ func (db *Database) Get(name string) (*table.Table, int) {
 }
 
 // Flushes all tables.
-func (db *Database) Close() {
+func (db *Database) Flush() {
 	for _, t := range db.Tables {
 		t.Flush()
 	}

@@ -9,5 +9,8 @@ Primary features:
 5. Update restricted & delete restricted triggers.
 6. Table locks: exclusive and shared locks.
 7. Basic transaction management: roll-back support.
-8. Relational algebras: select, project, join, redefine
-9. Only one data type: string
+8. Relational algebras: select, project, join, redefine.
+9. Only one data type: string.
+
+Please read doc/index.html for more details.
+
