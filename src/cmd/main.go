@@ -64,12 +64,10 @@ func Eg1() {
 	// Rename table "t1" to "t3".
 	status = db.Rename("t1", "t3")
 	fmt.Println("Rename t1 to t3", status)
-	fmt.Println(db.Tables)
 
 	// Drop table "t3".
 	status = db.Drop("t3")
 	fmt.Println("Drop t3", status)
-	fmt.Println(db.Tables)
 
 	// Drop table "tnoexist", there should be an error (table not found) .
 	status = db.Drop("tnoexist")
