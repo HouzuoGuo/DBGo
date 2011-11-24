@@ -1,4 +1,4 @@
-"DBGo" is a simple relational database engine implemented in Go programming language.
+"DBGo" is a light-weight relational database engine implemented in Go programming language.
 It is a programming exercise I gave to myself when I began to learn Go.
 
 Primary features:
