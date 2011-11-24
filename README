@@ -11,6 +11,8 @@ Primary features:
 7. Basic transaction management: roll-back support.
 8. Relational algebras: select, project, join, redefine.
 9. Only one data type: string.
+10. Nicely formatted table data file (Like a spreadsheet).
+11. Easy to extend and customize to suit your needs.
 
 Please read doc/index.html for more details.
 
