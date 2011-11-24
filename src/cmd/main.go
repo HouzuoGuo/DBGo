@@ -64,15 +64,17 @@ func Eg1() {
 	// Rename table "t1" to "t3".
 	status = db.Rename("t1", "t3")
 	fmt.Println("Rename t1 to t3", status)
+	fmt.Println(db.Tables)
 
 	// Drop table "t3".
 	status = db.Drop("t3")
 	fmt.Println("Drop t3", status)
+	fmt.Println(db.Tables)
 
 	// Drop table "tnoexist", there should be an error (table not found) .
 	status = db.Drop("tnoexist")
 	fmt.Println("Drop tnoexist (error)", status)
-	
+
 	// Flush disk buffer.
 	db.Flush()
 }
@@ -427,11 +429,11 @@ func Eg8() {
 	tr.Insert(PERSON, map[string]string{"NAME": "JOSHUA", "AGE": "21"})
 	tr.Insert(PERSON, map[string]string{"NAME": "NIKKI", "AGE": "16"})
 
-	tr.Insert(CONTACT, map[string]string{"NAME": "JOSHUA", "SITE": "TWITTER", "USERNAME": "CGG"})
+	tr.Insert(CONTACT, map[string]string{"NAME": "JOSHUA", "SITE": "TWITTER", "USERNAME": "JAMD"})
 	tr.Insert(CONTACT, map[string]string{"NAME": "NIKKI", "SITE": "MYB", "USERNAME": "NH"})
 	tr.Insert(CONTACT, map[string]string{"NAME": "BUZZ", "SITE": "TWITTER", "USERNAME": "BUZZ01"})
 	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "FACEBOOK", "USERNAME": "CG"})
-	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "SKYPE", "USERNAME": "JAMD"})
+	tr.Insert(CONTACT, map[string]string{"NAME": "CHRISTINA", "SITE": "SKYPE", "USERNAME": "CGG"})
 	tr.Commit()
 
 	tr.ELock(PERSON)
@@ -455,8 +457,9 @@ func Eg8() {
 	query2 := ra.New()
 	query2.Load(CONTACT)
 	query2.Select("SITE", filter.Eq{}, "FACEBOOK")
-	contactResult, _ = query.Table("CONTACT")
+	contactResult, _ = query2.Table("CONTACT")
 	for _, i := range contactResult.RowNumbers {
+		fmt.Println("Updating", i)
 		tr.Update(CONTACT, i, map[string]string{"SITE": "FB"})
 	}
 	tr.Commit()

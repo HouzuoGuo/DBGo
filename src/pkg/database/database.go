@@ -156,7 +156,7 @@ func (db *Database) Drop(name string) int {
 	if !exists {
 		return st.TableNotFound
 	}
-	db.Tables[name] = nil, true
+	db.Tables[name] = nil, false
 	// Remove table files and directories.
 	return tablefilemanager.Delete(db.Path, name)
 }
@@ -177,10 +177,9 @@ func (db *Database) Rename(oldName, newName string) int {
 	if status != st.OK {
 		return status
 	}
-	db.Tables[newName] = db.Tables[oldName]
-	db.Tables[oldName] = nil, true
-	// Filenames have been changed, thus re-open file handles.
-	return db.Tables[newName].OpenFiles()
+	db.Tables[newName], status = table.Open(db.Path, newName)
+	db.Tables[oldName] = nil, false
+	return status
 }
 
 // Returns a Table by name.
@@ -195,7 +194,6 @@ func (db *Database) Get(name string) (*table.Table, int) {
 
 // Flushes all tables.
 func (db *Database) Flush() {
-	logg.Debug(db.Tables, "", "")
 	for _, t := range db.Tables {
 		t.Flush()
 	}

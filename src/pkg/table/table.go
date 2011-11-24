@@ -25,7 +25,7 @@ yJOSHUA              FB                  CGG
  BUZZ                TWITTER             BUZZ01                                  
  CHRISTINA           FACEBOOK            CG                                      
  CHRISTINA           SKYPE               JAMD
- 
+
 tableName.def - column definitions, e.g.
 
 ~del:1
@@ -66,7 +66,7 @@ type Table struct {
 	Columns                               map[string]*column.Column
 	RowLength                             int
 	// sequence of columns
-	ColumnsInOrder                        []*column.Column
+	ColumnsInOrder []*column.Column
 }
 
 // Opens a table.

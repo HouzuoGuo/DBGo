@@ -54,17 +54,17 @@ func ExecuteTrigger(db *database.Database, t *table.Table, r *ra.Result, operati
 				return status
 			}
 			/*
-			Call the trigger function. Parameters given are:
-			reference to database
-			reference to table
-			column name
-			extra parameters as stored in trigger lookup table
-			row1
-			row2
-			
-			When insert, row1 is the new row, row2 is nil.
-			When update, row1 is the new row, row2 is the old row.
-			When delete, row1 is the deleted row, row2 is nil.
+				Call the trigger function. Parameters given are:
+				reference to database
+				reference to table
+				column name
+				extra parameters as stored in trigger lookup table
+				row1
+				row2
+
+				When insert, row1 is the new row, row2 is nil.
+				When update, row1 is the new row, row2 is the old row.
+				When delete, row1 is the deleted row, row2 is nil.
 			*/
 			status = TriggerFuncTable()[row["FUNC"]].Execute(db, t, column, strings.Split(strings.TrimSpace(row["PARAM"]), ";"), row1, row2)
 			if status != st.OK {

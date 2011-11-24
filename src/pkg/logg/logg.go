@@ -25,13 +25,13 @@ import (
 )
 
 func Err(pkg, function, err interface{}) {
-	fmt.Println(fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(err))
+	fmt.Println("ERR:" + fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(err))
 }
 
 func Warn(pkg, function, msg interface{}) {
-	fmt.Println(fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(msg))
+	fmt.Println("WARN:" + fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(msg))
 }
 
 func Debug(pkg, function, msg interface{}) {
-	fmt.Println(fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(msg))
+	fmt.Println("DEBUG:" + fmt.Sprint(pkg) + "." + fmt.Sprint(function) + ":" + fmt.Sprint(msg))
 }

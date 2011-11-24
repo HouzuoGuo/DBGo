@@ -23,6 +23,7 @@ package tablefilemanager
 import (
 	"os"
 	"constant"
+	"logg"
 	"st"
 )
 
@@ -35,6 +36,7 @@ func Create(path string, name string) int {
 	for _, ext := range constant.TableFiles() {
 		_, err := os.Create(path + name + ext)
 		if err != nil {
+			logg.Err("tablefilemanager", "Create", err)
 			return st.CannotCreateTableFile
 		}
 	}
@@ -42,6 +44,7 @@ func Create(path string, name string) int {
 	for _, dir := range constant.TableDirs() {
 		err := os.Mkdir(path+name+dir, constant.TableDirPerm)
 		if err != nil {
+			logg.Err("tablefilemanager", "Create", err)
 			return st.CannotCreateTableDir
 		}
 	}
@@ -53,12 +56,14 @@ func Rename(path string, oldName string, newName string) int {
 	for _, ext := range constant.TableFiles() {
 		err := os.Rename(path+oldName+ext, path+newName+ext)
 		if err != nil {
+			logg.Err("tablefilemanager", "Rename", err)
 			return st.CannotRenameTableFile
 		}
 	}
 	for _, dir := range constant.TableDirs() {
 		err := os.Rename(path+oldName+dir, path+newName+dir)
 		if err != nil {
+			logg.Err("tablefilemanager", "Rename", err)
 			return st.CannotRenameTableDir
 		}
 	}
@@ -70,12 +75,14 @@ func Delete(path string, name string) int {
 	for _, ext := range constant.TableFiles() {
 		err := os.Remove(path + name + ext)
 		if err != nil {
+			logg.Err("tablefilemanager", "Delete", err)
 			return st.CannotRemoveTableFile
 		}
 	}
 	for _, dir := range constant.TableDirs() {
 		err := os.RemoveAll(path + name + dir)
 		if err != nil {
+			logg.Err("tablefilemanager", "Delete", err)
 			return st.CannotRemoveTableDir
 		}
 	}
