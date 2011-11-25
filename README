@@ -16,3 +16,7 @@ Primary features:
 
 Please read doc/index.html for more details.
 
+INSTALLATION INSTRUCTION
+========================
+Download the source code, place it into your application. Follow examples in src/cmd/main.go to use it.
+
