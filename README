@@ -18,5 +18,6 @@ Please read doc/index.html for more details.
 
 INSTALLATION INSTRUCTION
 ========================
-Download the source code, place it into your application. Follow examples in src/cmd/main.go to use it.
+Download the source code, place it into your application's source directory.
+Then follow the examples provided in src/cmd/main.go to use it.
 
