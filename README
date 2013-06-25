@@ -21,3 +21,6 @@ INSTALLATION INSTRUCTION
 Download the source code, place it into your application's source directory.
 Then follow the examples provided in src/cmd/main.go to use it.
 
+
+Edit on 2013-06-25:
+DBGo was originally written as a Golang practice and is not meant for serious usage as there are some serious implementation flaws.
