@@ -1,5 +1,5 @@
 "DBGo" is a light-weight relational database engine implemented in Go programming language.
-It is a programming exercise I gave to myself when I began to learn Go.
+It is a programming exercise to learn Go.
 
 Primary features:
 1. Create/rename/delete tables.
@@ -14,13 +14,5 @@ Primary features:
 10. Nicely formatted table data file (Like a spreadsheet).
 11. Easy to extend and customize to suit your needs.
 
-Please read doc/index.html for more details.
-
-INSTALLATION INSTRUCTION
-========================
-Download the source code, place it into your application's source directory.
-Then follow the examples provided in src/cmd/main.go to use it.
-
-
 Edit on 2013-06-25:
-DBGo was originally written as a Golang practice and is not meant for serious usage as there are some serious implementation flaws.
+DBGo was originally written as a Golang exercise and there are some serious implementation flaws. Do not use in serious code.
